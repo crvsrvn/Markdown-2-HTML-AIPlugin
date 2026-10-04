@@ -1,0 +1,23 @@
+{
+  "name": "markdown-2-html-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Markdown-2-HTML 导出工具；dist/m2h.mjs 是打包好的单文件，运行只需要 Node.js 18+",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node dist/m2h.mjs check test/sample.md && node dist/m2h.mjs check ../references/syntax.md"
+  },
+  "devDependencies": {
+    "@viz-js/viz": "^3.31.0",
+    "esbuild": "^0.25.0",
+    "highlight.js": "^11.12.0",
+    "js-yaml": "^4.3.2",
+    "linkedom": "^0.18.13",
+    "markdown-it": "^14.3.2",
+    "markdown-it-cjk-friendly": "^3.0.0",
+    "markdown-it-container": "^4.0.0",
+    "markdown-it-deflist": "^3.0.1",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-mark": "^4.0.0"
+  }
+}

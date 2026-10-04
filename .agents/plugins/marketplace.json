@@ -1,14 +1,14 @@
 {
-  "name": "html-style-aiplugin",
+  "name": "markdown-2-html-aiplugin",
   "interface": {
-    "displayName": "HTML Style AIPlugin"
+    "displayName": "Markdown-2-HTML AIPlugin"
   },
   "plugins": [
     {
-      "name": "html-style",
+      "name": "markdown-2-html",
       "source": {
         "source": "local",
-        "path": "./plugins/html-style"
+        "path": "./plugins/markdown-2-html"
       },
       "policy": {
         "installation": "AVAILABLE",

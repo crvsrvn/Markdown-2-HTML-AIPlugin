@@ -1,0 +1,37 @@
+{
+  "name": "markdown-2-html",
+  "version": "2.0.0",
+  "description": "文档一律用 Markdown 读写；定稿后导出 html-style 风格的单文件 HTML 给人阅读（右侧大纲、自动序号、提示块与状态标签、可缩放全屏的 PlantUML 图、表格全屏），无外部依赖；AI 不读取也不修改生成的 HTML。",
+  "author": {
+    "name": "Markdown-2-HTML contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "markdown",
+    "html",
+    "document",
+    "plantuml",
+    "toc",
+    "style"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Markdown-2-HTML",
+    "shortDescription": "文档用 Markdown 读写，定稿后导出给人看的单文件 HTML。",
+    "longDescription": "AI 读写的文档一律是 Markdown，省 token；定稿后用插件导出 html-style 风格的单文件 HTML：Comic Sans MS 16px、右侧可筛选可折叠的大纲、自动章节序号、语义提示块与状态标签、ID 着色、PlantUML 图（导出时用纯 JS 引擎渲染，无需 Java）可拖动缩放与网页全屏、表格全屏。HTML 双击即可打开，不依赖任何外部服务；AI 不读取也不修改生成的 HTML。",
+    "developerName": "Markdown-2-HTML contributors",
+    "category": "Productivity",
+    "capabilities": [
+      "Markdown authoring",
+      "Single-file HTML export",
+      "Right-side outline",
+      "PlantUML without Java",
+      "Migrate html-style pages"
+    ],
+    "defaultPrompt": [
+      "把这份方案写成 Markdown 文档，定稿后导出 HTML。",
+      "把这个旧的 HTML 页面迁移成 Markdown。",
+      "导出这份 Markdown 的 HTML 给我。"
+    ]
+  }
+}

@@ -1,30 +1,31 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
-  "name": "html-style-aiplugin",
+  "name": "markdown-2-html-aiplugin",
   "owner": {
-    "name": "HTML Style contributors"
+    "name": "Markdown-2-HTML contributors"
   },
   "metadata": {
-    "description": "HTML 样式规范插件市场（Claude Code 版）。",
-    "version": "1.8.1"
+    "description": "Markdown-2-HTML 插件市场（Claude Code 版）。",
+    "version": "2.0.0"
   },
   "plugins": [
     {
-      "name": "html-style",
-      "source": "./plugins/html-style",
-      "description": "创建或修改 HTML 时统一样式：Comic Sans 16px、右侧无底色大纲、#FCFCFB / #151515 底色、988px 居中版心、提示块与状态标签、图表可拖动缩放并双击全屏，成品托管到云端。",
-      "version": "1.8.1",
+      "name": "markdown-2-html",
+      "source": "./plugins/markdown-2-html",
+      "description": "文档一律用 Markdown 读写；定稿后导出 html-style 风格的单文件 HTML 给人阅读（右侧大纲、自动序号、提示块与状态标签、可缩放全屏的 PlantUML 图、表格全屏），无外部依赖；AI 不读取也不修改生成的 HTML。",
+      "version": "2.0.0",
       "author": {
-        "name": "HTML Style contributors"
+        "name": "Markdown-2-HTML contributors"
       },
       "license": "MIT",
       "category": "productivity",
       "keywords": [
+        "markdown",
         "html",
-        "style",
-        "artifact",
         "document",
-        "toc"
+        "plantuml",
+        "toc",
+        "style"
       ]
     }
   ]

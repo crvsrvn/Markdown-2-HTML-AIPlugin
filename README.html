@@ -1,10 +1,11 @@
-<title>HTML 样式规范</title>
-<!--
-  html-style v1.8.1 模板
-  - 字体链接、样式块 hs-style、脚本块 hs-script，以及回到顶部标记，原样复制，不要改写或删减。
-  - 页面内容全部写在 main.hs-doc 里；大纲、ID 着色由脚本完成，不要手写。
-  - 页面特有样式另起一个 style 块，只用 --hs-* 令牌取色。
--->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="generator" content="Markdown-2-HTML/2.0.0">
+<meta name="m2h-source" content="README.md">
+<title>Markdown-2-HTML</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -403,89 +404,199 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
 @media (min-width: 900px) { .hs-scrim { display: none; } }
 @media (prefers-reduced-motion: reduce) { .hs-toc, .hs-code > summary::before { transition: none; } }
 </style>
+<style id="m2h-presets">
+/* Markdown-2-HTML 组件样式：只用 --hs-* 令牌，补充 template.html 没有的组件（卡片、热力表、条目卡片、链接胶囊等） */
 
-<style>
-/* 页面特有样式（示例图） */
-.demo-diagram .box { fill: var(--hs-side); stroke: var(--hs-line); }
-.demo-diagram .label { fill: var(--hs-text); font: 700 15px var(--hs-font); }
-.demo-diagram .sub { fill: var(--hs-muted); font: 13px var(--hs-font); }
-.demo-diagram .edge { stroke: var(--hs-accent); stroke-width: 2; fill: none; }
-.demo-diagram .head { fill: var(--hs-accent); }
+/* 语法高亮（导出时由 highlight.js 生成） */
+.hs-doc pre :is(.hljs-keyword, .hljs-meta .hljs-keyword, .hljs-selector-tag) { color: var(--hs-syn-kw); }
+.hs-doc pre :is(.hljs-type, .hljs-built_in, .hljs-title.class_, .hljs-section) { color: var(--hs-syn-type); }
+.hs-doc pre :is(.hljs-string, .hljs-regexp, .hljs-attr) { color: var(--hs-syn-str); }
+.hs-doc pre :is(.hljs-comment, .hljs-quote) { color: var(--hs-syn-com); font-style: italic; }
+.hs-doc pre :is(.hljs-number, .hljs-literal, .hljs-symbol) { color: var(--hs-syn-num); }
+.hs-doc pre :is(.hljs-title.function_, .hljs-meta) { color: var(--hs-syn-fn); }
+
+/* 标签字、灰色说明、来源小字 */
+.hs-k { margin-right: .45em; font-size: 12.5px; color: var(--hs-faint); }
+.hs-doc .hs-muted { color: var(--hs-muted); }
+.hs-doc .src { font-size: 13px; color: var(--hs-muted); }
+
+/* 问答式定义列表 */
+.hs-doc .qa { display: grid; grid-template-columns: fit-content(7em) minmax(0, 1fr); gap: 6px 14px; margin: 0 0 14px; }
+.hs-doc .qa > dt { color: var(--hs-accent); }
+@media (max-width: 899.98px) { .hs-doc .qa { grid-template-columns: minmax(0, 1fr); } }
+
+/* 表格变体：首列加粗不换行 */
+.hs-doc .lead td:first-child { font-weight: 700; white-space: nowrap; }
+.hs-doc .lead td { min-width: 120px; }
+
+/* 卡片网格 */
+.hs-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0 22px; }
+.hs-card { min-width: 0; padding: 12px 14px; background: var(--hs-surface); border: 1px solid var(--hs-line); border-radius: 6px; }
+.hs-doc .hs-card .hs-card-t { margin: 0 0 6px; font-weight: 700; color: var(--hs-text); }
+.hs-doc .hs-card p:not(.hs-card-t) { margin: 0; font-size: 14.5px; color: var(--hs-muted); }
+
+/* 链接胶囊（data-kind 取语义色） */
+:where(.hs-pill) { --c: var(--hs-accent); }
+.hs-doc a.hs-pill { display: inline-block; margin: 0 6px 6px 0; padding: 0 10px; font-size: 13px; line-height: 1.8; white-space: nowrap; color: var(--c); text-decoration: none; background: color-mix(in srgb, var(--c) 9%, transparent); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent); border-radius: 999px; }
+.hs-doc a.hs-pill:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
+
+/* 条目卡片 ```records */
+.hs-rec { padding-bottom: 18px; border-bottom: 1px dashed var(--hs-line); }
+.hs-doc .hs-rec :is(h3, h4, h5) { margin: 28px 0 4px; }
+.hs-doc .hs-rec-sub { margin: 0 0 8px; }
+.hs-doc .hs-rec-facts { display: flex; flex-wrap: wrap; gap: 2px 18px; margin: 0 0 8px; font-size: 14px; line-height: 1.7; color: var(--hs-muted); }
+.hs-doc .hs-rec-links { margin: 0 0 4px; }
+.hs-doc .hs-rec-desc { margin: 0; }
+.hs-doc .hs-rec-desc.is-none { color: var(--hs-faint); }
+
+/* 热力表 ```heatmap */
+.hs-heat table { width: auto; min-width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+.hs-doc .hs-heat :is(th, td) { padding: 4px 7px; text-align: center; vertical-align: middle; }
+.hs-doc .hs-heat th.hs-v { vertical-align: bottom; padding: 8px 4px; }
+.hs-heat th.hs-v > span { display: inline-block; max-height: 12em; writing-mode: vertical-rl; text-align: start; line-height: 1.3; font-size: 12.5px; }
+.hs-heat :is(th, td):first-child { position: sticky; left: 0; z-index: 1; }
+.hs-heat td:first-child { background: var(--hs-surface); }
+.hs-heat tbody tr:nth-child(even) td:first-child { background: var(--hs-row-alt); }
+.hs-doc .hs-heat td a { display: block; color: inherit; text-decoration: none; }
+.hs-doc .hs-heat td a:hover { color: var(--hs-accent); text-decoration: underline; }
+.hs-heat td[data-heat] { font-weight: 700; }
+.hs-heat .hs-total td { font-weight: 700; border-top: 2px solid color-mix(in srgb, var(--hs-accent) 45%, transparent); }
+[data-heat="1"] { background: color-mix(in srgb, var(--hs-accent) 8%, transparent); }
+[data-heat="2"] { background: color-mix(in srgb, var(--hs-accent) 17%, transparent); }
+[data-heat="3"] { background: color-mix(in srgb, var(--hs-accent) 27%, transparent); }
+[data-heat="4"] { background: color-mix(in srgb, var(--hs-accent) 38%, transparent); }
+[data-heat="5"] { background: color-mix(in srgb, var(--hs-accent) 50%, transparent); }
+.hs-doc .hs-heat-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 13px; }
+.hs-sw { padding: 0 8px; border-radius: 4px; font-variant-numeric: tabular-nums; }
 </style>
-
+</head>
+<body>
 <main class="hs-doc" data-toc-levels="2,3">
-  <h1 id="top">HTML 样式规范</h1>
-  <p class="hs-meta">html-style 插件模板 · v1.8.1</p>
-
-  <blockquote class="hs-callout" data-kind="info">
-    <p class="hs-callout-title">文档说明</p>
-    <dl class="hs-kv">
-      <dt>用途</dt><dd>这一页本身就是模板：复制 <code>hs-style</code>、<code>hs-script</code> 与两处标记，只替换正文。</dd>
-      <dt>颜色</dt><dd>语义色固定：说明蓝、通过绿、注意琥珀、风险红、要点紫、备注灰；行内编号按前缀自动着色。</dd>
-    </dl>
-  </blockquote>
-
-  <h2 id="s1"><span class="hs-num">1.</span>字体与版心<a class="hs-anchor" href="#s1" aria-label="本节链接">#</a></h2>
-  <p>正文 Comic Sans MS 16px，行高 1.75。版心固定 988px，在大纲左侧的区域内水平居中；页面底色浅色 <code>#FCFCFB</code>、深色 <code>#151515</code>。标题色条、表头、列表符号和大纲当前位置统一用<strong>强调色</strong>。</p>
-  <div class="hs-table"><table>
-    <caption>标题层级</caption>
-    <thead><tr><th>元素</th><th>字号</th><th>标记</th></tr></thead>
-    <tbody>
-      <tr><td><code>h2</code></td><td>24px</td><td><span class="hs-tag" data-kind="key">强调色色条</span></td></tr>
-      <tr><td><code>h3</code></td><td>20px</td><td><span class="hs-tag" data-kind="info">强调色竖条</span></td></tr>
-      <tr><td><code>h4</code></td><td>17.5px</td><td><span class="hs-tag" data-kind="muted">无装饰</span></td></tr>
-    </tbody>
-  </table></div>
-
-  <h2 id="s2"><span class="hs-num">2.</span>图表<a class="hs-anchor" href="#s2" aria-label="本节链接">#</a></h2>
-  <p>图表放进 <code>.hs-zoom</code>；<code>figure</code> 直接包含的图片、SVG、canvas 会被自动包进去。按 <kbd>F</kbd> 或双击进入全屏，<kbd>Esc</kbd> 退出。</p>
-  <figure>
-    <svg class="demo-diagram" viewBox="0 0 720 200" role="img" aria-label="三种图表操作">
-      <defs><marker id="demo-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker></defs>
-      <rect class="box" x="20" y="60" width="200" height="80" rx="8"/>
-      <text class="label" x="120" y="96" text-anchor="middle">左键 / 右键拖动</text>
-      <text class="sub" x="120" y="120" text-anchor="middle">平移画面</text>
-      <rect class="box" x="260" y="60" width="200" height="80" rx="8"/>
-      <text class="label" x="360" y="96" text-anchor="middle">滚轮</text>
-      <text class="sub" x="360" y="120" text-anchor="middle">以指针为中心缩放</text>
-      <rect class="box" x="500" y="60" width="200" height="80" rx="8"/>
-      <text class="label" x="600" y="96" text-anchor="middle">双击</text>
-      <text class="sub" x="600" y="120" text-anchor="middle">全屏 / 退出全屏</text>
-      <path class="edge" d="M222 100 H256" marker-end="url(#demo-arrow)"/>
-      <path class="edge" d="M462 100 H496" marker-end="url(#demo-arrow)"/>
-    </svg>
-    <figcaption><span>示例：内联 SVG 用 --hs-* 令牌配色，跟随主题</span></figcaption>
-  </figure>
-
-  <h2 id="s3"><span class="hs-num">3.</span>标记与原生增强<a class="hs-anchor" href="#s3" aria-label="本节链接">#</a></h2>
-  <h3 id="s3-1"><span class="hs-num">3.1</span>状态、记号与 ID<a class="hs-anchor" href="#s3-1" aria-label="本节链接">#</a></h3>
-  <p>状态词用标签：<span class="hs-tag" data-kind="ok">已修</span> <span class="hs-tag" data-kind="warn">未做</span> <span class="hs-tag" data-kind="danger">已删除</span> <span class="hs-tag" data-kind="info">新增</span>。图例符号用记号：<span class="hs-mark" data-kind="ok" title="承接">=</span> 承接、<span class="hs-mark" data-kind="warn" title="换表达">≈</span> 换表达、<span class="hs-mark" data-kind="danger" title="缺口">△</span> 缺口。行内 ID 自动着色，同前缀同色：<code>RT-01</code>、<code>RT-02</code>、<code>SW-R1.7</code>、<code>G15</code>。</p>
-  <blockquote class="hs-callout" data-kind="warn">
-    <p class="hs-callout-title">注意</p>
-    <p>能用原生 HTML / CSS 实现的交互，不要再写脚本。颜色必须编码含义，不做纯装饰。</p>
-  </blockquote>
-
-  <h3 id="s3-2"><span class="hs-num">3.2</span>术语与折叠<a class="hs-anchor" href="#s3-2" aria-label="本节链接">#</a></h3>
-  <dl>
-    <dt>版心</dt><dd>正文所在的固定宽度区域。</dd>
-    <dt><abbr title="Table of Contents">TOC</abbr></dt><dd>右侧大纲，可筛选，随滚动高亮当前章节。</dd>
-  </dl>
-  <p>强调二选一：术语、关键词用<strong>加粗</strong>；需要一眼扫到的结论句用<mark>高亮，背景覆盖整段文字</mark>；同一处不要既加粗又高亮。脚注用原生弹层<button type="button" class="hs-ref" popovertarget="fn-1">1</button>，不需要脚本。行内图标：<i class="hs-ico" data-icon="database"></i> 数据、<i class="hs-ico" data-icon="flow"></i> 流程。</p>
-  <div popover id="fn-1" class="hs-pop">原生 <code>popover</code> 属性配合 <code>popovertarget</code> 按钮即可开合，点击空白处或按 Esc 关闭。</div>
-  <details class="hs-code" open>
-    <summary><span class="hs-code-lang">HTML</span><span class="hs-code-meta">4 行</span></summary>
-    <pre><code>&lt;figure&gt;
-  &lt;div class="hs-zoom"&gt;&lt;img src="diagram.svg" alt="状态机结构"&gt;&lt;/div&gt;
-  &lt;figcaption&gt;&lt;span&gt;状态机结构&lt;/span&gt;&lt;/figcaption&gt;
-&lt;/figure&gt;</code></pre>
-  </details>
-  <details>
-    <summary>附录：为什么大纲放在右侧</summary>
-    <p>左侧留给正文的起始阅读位置，右侧大纲随滚动高亮，既能定位又不打断阅读动线。</p>
-  </details>
+<h1 id="top">Markdown-2-HTML</h1>
+<p>同时支持 Claude Code 与 Codex 的文档插件：AI 读写的文档一律是 Markdown，省 token；文档定稿后，用插件导出 html-style 风格的单文件 HTML 给人阅读。生成的 HTML 只给人看，AI 不读取也不修改。</p>
+<blockquote class="hs-callout" data-kind="key">
+<p class="hs-callout-title">读写约定</p>
+<p>插件在 AI 读写任何文档之前生效：AI 只读写 <code>.md</code>。插件生成的 HTML 在 <code>&lt;head&gt;</code> 里带 <code>&lt;meta name=&quot;generator&quot; content=&quot;Markdown-2-HTML/版本&quot;&gt;</code> 标记；Claude Code 里由 hook 拦截对这类 HTML 的读取、搜索和修改，并提示去读对应的 <code>.md</code>。没有这个标记的 HTML 不受影响。</p>
+</blockquote>
+<h2 id="s1"><span class="hs-num">1.</span>功能<a class="hs-anchor" href="#s1" aria-label="本节链接">#</a></h2>
+<div class="hs-table"><table>
+<thead>
+<tr>
+<th>项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>源文件</td>
+<td>CommonMark + GFM 表格，加少量扩展：提示块、状态标签、图例记号、交叉引用、折叠段落、卡片、条目卡片、热力表。语法见 <a href="plugins/markdown-2-html/skills/markdown-2-html/references/syntax.md">syntax.md</a></td>
+</tr>
+<tr>
+<td>导出</td>
+<td>单文件 HTML，双击即可打开；样式、脚本、图表都在文件里，不依赖任何外部服务（只有字体从 Google Fonts 加载，失败时用本机字体）</td>
+</tr>
+<tr>
+<td>样式</td>
+<td>沿用 html-style v1.8.1：Comic Sans MS 16px、右侧可筛选可折叠的大纲、自动章节序号、<code>#FCFCFB</code> / <code>#151515</code> 底色、988px 版心、语义提示块、状态标签、ID 着色</td>
+</tr>
+<tr>
+<td>图表</td>
+<td>PlantUML 源码在导出时用官方纯 JS 引擎渲染成 SVG 内联，不需要 Java；可拖动、滚轮缩放、双击网页全屏</td>
+</tr>
+<tr>
+<td>表格与代码</td>
+<td>表格网页全屏、表头吸顶；代码导出时高亮，超过 25 行默认折叠</td>
+</tr>
+<tr>
+<td>检查</td>
+<td>未知语法、不存在的页内链接、PlantUML 语法错误都会让导出报错</td>
+</tr>
+<tr>
+<td>迁移</td>
+<td>旧版 html-style 页面可转成 Markdown，并逐项比对原页面与新导出页面</td>
+</tr>
+<tr>
+<td>读取守卫</td>
+<td>Claude Code：hook 拦截 Read、Edit、Write、Grep、Bash、PowerShell 对生成 HTML 的读取和修改。Codex 没有对应 hook，靠 Skill 里的规则约束</td>
+</tr>
+</tbody>
+</table></div>
+<p>完整规则见 <a href="plugins/markdown-2-html/skills/markdown-2-html/SKILL.md">SKILL.md</a>。</p>
+<h2 id="s2"><span class="hs-num">2.</span>运行要求<a class="hs-anchor" href="#s2" aria-label="本节链接">#</a></h2>
+<p>Node.js 18 或更新版本。导出工具已打包成单个文件 <code>scripts/dist/m2h.mjs</code>，PlantUML 引擎在 <code>scripts/vendor/</code> 里，使用时不需要 <code>npm install</code>。</p>
+<h2 id="s3"><span class="hs-num">3.</span>安装<a class="hs-anchor" href="#s3" aria-label="本节链接">#</a></h2>
+<p>下文 <code>&lt;市场来源&gt;</code> 二选一：</p>
+<ul>
+<li>GitHub：<code>crvsrvn/Markdown-2-HTML-AIPlugin</code>，或 fork 后的 <code>&lt;owner&gt;/&lt;repo&gt;</code>；也可以传 HTTPS / SSH 克隆地址。</li>
+<li>本地目录：仓库根目录，即包含 <code>.claude-plugin/marketplace.json</code> 的目录。写绝对路径。</li>
+</ul>
+<h3 id="s3-1"><span class="hs-num">3.1</span>让 AI 安装（推荐）<a class="hs-anchor" href="#s3-1" aria-label="本节链接">#</a></h3>
+<p>在 Claude Code 或 Codex 里直接说：</p>
+<details class="hs-code" open><summary><span class="hs-code-lang">Text</span><span class="hs-code-meta">1 行</span></summary><pre><code>按 README 安装这个插件：&lt;GitHub 地址或本地路径&gt;</code></pre></details>
+<blockquote class="hs-callout" data-kind="info">
+<p class="hs-callout-title">给执行安装的 AI</p>
+<ol>
+<li>判断当前平台是 Claude Code 还是 Codex，只执行对应平台的命令。</li>
+<li>本地路径先解析成绝对路径，并确认其中存在 <code>.claude-plugin/marketplace.json</code>（Codex 为 <code>.agents/plugins/marketplace.json</code>）。</li>
+<li><code>claude</code> / <code>codex</code> 不在 PATH 时，先定位本机的 CLI 可执行文件再调用，不要假设固定路径。</li>
+<li>装过旧版 <code>html-style@html-style-aiplugin</code> 时，先卸载它并移除 <code>html-style-aiplugin</code> 市场，避免两套规则同时生效。</li>
+<li>市场已用同一来源添加过时跳过添加；来源不同时先移除旧市场再添加。</li>
+<li>完成后告诉用户：开始新的对话 / 任务后生效。</li>
+</ol>
+</blockquote>
+<h3 id="s3-2"><span class="hs-num">3.2</span>Claude Code<a class="hs-anchor" href="#s3-2" aria-label="本节链接">#</a></h3>
+<details class="hs-code" open><summary><span class="hs-code-lang">Bash</span><span class="hs-code-meta">2 行</span></summary><pre><code>claude plugin marketplace add &lt;市场来源&gt;
+claude plugin install markdown-2-html@markdown-2-html-aiplugin</code></pre></details>
+<p>从旧版迁移：</p>
+<details class="hs-code" open><summary><span class="hs-code-lang">Bash</span><span class="hs-code-meta">2 行</span></summary><pre><code>claude plugin uninstall html-style@html-style-aiplugin
+claude plugin marketplace remove html-style-aiplugin</code></pre></details>
+<h3 id="s3-3"><span class="hs-num">3.3</span>Codex<a class="hs-anchor" href="#s3-3" aria-label="本节链接">#</a></h3>
+<details class="hs-code" open><summary><span class="hs-code-lang">Bash</span><span class="hs-code-meta">2 行</span></summary><pre><code>codex plugin marketplace add &lt;市场来源&gt;
+codex plugin add markdown-2-html@markdown-2-html-aiplugin</code></pre></details>
+<p>较旧的 Codex CLI 没有 <code>codex plugin add</code>，添加市场后在 Codex 里用 <code>/plugins</code> 安装。</p>
+<h3 id="s3-4"><span class="hs-num">3.4</span>仅安装 Skill<a class="hs-anchor" href="#s3-4" aria-label="本节链接">#</a></h3>
+<p>把 <code>plugins/markdown-2-html/skills/markdown-2-html/</code> 整个目录复制到工具的用户级 Skills 目录（例如 Claude Code 的 <code>~/.claude/skills/markdown-2-html/</code>）。这种方式没有读取守卫 hook，只靠 Skill 规则约束。与插件安装二选一。</p>
+<h3 id="s3-5"><span class="hs-num">3.5</span>更新<a class="hs-anchor" href="#s3-5" aria-label="本节链接">#</a></h3>
+<details class="hs-code" open><summary><span class="hs-code-lang">Bash</span><span class="hs-code-meta">2 行</span></summary><pre><code>claude plugin marketplace update markdown-2-html-aiplugin
+claude plugin update markdown-2-html@markdown-2-html-aiplugin</code></pre></details>
+<p><code>claude plugin update</code> 按插件清单里的版本号判断有没有新版本。Codex 安装的是快照：先 <code>codex plugin marketplace upgrade markdown-2-html-aiplugin</code>，再移除并重新添加插件。</p>
+<h2 id="s4"><span class="hs-num">4.</span>使用<a class="hs-anchor" href="#s4" aria-label="本节链接">#</a></h2>
+<p>不需要记命令。直接说“把这份方案写成文档”“定稿了，导出 HTML”“把这个旧 HTML 页面迁移成 Markdown”即可。AI 调用的命令如下（<code>&lt;技能目录&gt;</code> 为 <code>plugins/markdown-2-html/skills/markdown-2-html</code>）：</p>
+<details class="hs-code" open><summary><span class="hs-code-lang">Bash</span><span class="hs-code-meta">4 行</span></summary><pre><code>node &lt;技能目录&gt;/scripts/dist/m2h.mjs check  doc.md
+node &lt;技能目录&gt;/scripts/dist/m2h.mjs build  doc.md [-o out.html]
+node &lt;技能目录&gt;/scripts/dist/m2h.mjs migrate page.html doc.md [--puml-dir &lt;目录&gt;]
+node &lt;技能目录&gt;/scripts/dist/m2h.mjs verify 原页面.html 导出页面.html</code></pre></details>
+<h2 id="s5"><span class="hs-num">5.</span>目录结构<a class="hs-anchor" href="#s5" aria-label="本节链接">#</a></h2>
+<details class="hs-code" open><summary><span class="hs-code-lang">Text</span><span class="hs-code-meta">17 行</span></summary><pre><code>.claude-plugin/marketplace.json            Claude Code 市场清单
+.agents/plugins/marketplace.json           Codex 市场清单
+README.md / README.html                    说明（README.html 由插件导出，给人阅读）
+plugins/markdown-2-html/
+  .claude-plugin/plugin.json               Claude Code 插件清单
+  .codex-plugin/plugin.json                Codex 插件清单
+  hooks/hooks.json, guard.mjs              读取守卫（Claude Code）
+  skills/markdown-2-html/
+    SKILL.md                               规则与工作流程
+    references/syntax.md                   语法参考
+    assets/template.html                   样式、图标、大纲与图表 / 表格脚本（样式唯一来源）
+    assets/presets.css                     模板之外的组件样式（卡片、热力表、条目卡片等）
+    scripts/src/                           导出工具源码
+    scripts/build.mjs                      打包脚本：生成 dist/m2h.mjs 与第三方许可证清单
+    scripts/dist/m2h.mjs                   打包后的导出工具（提交到仓库）
+    scripts/vendor/plantuml-engine.js      PlantUML 官方 TeaVM 引擎（来自 @plantuml/mcp-js 0.2.2）
+    scripts/test/sample.md                 语法样例</code></pre></details>
+<h2 id="s6"><span class="hs-num">6.</span>维护<a class="hs-anchor" href="#s6" aria-label="本节链接">#</a></h2>
+<ul>
+<li>改样式或交互：只改 <code>template.html</code> 的字体链接、<code>hs-style</code>、回到顶部标记、<code>hs-script</code> 四块，或 <code>presets.css</code>。</li>
+<li>改导出工具：改 <code>scripts/src/</code>，在 <code>scripts/</code> 下运行 <code>npm install</code>、<code>npm run build</code>、<code>npm test</code>，把重新生成的 <code>dist/</code> 一起提交。</li>
+<li>每次发布都提升版本号，否则 Claude Code 不会更新已安装的插件。各清单文件与 <code>scripts/src/render.mjs</code> 里的 <code>VERSION</code> 保持一致。</li>
+<li>README 定稿后用插件重新导出 <code>README.html</code>。</li>
+</ul>
+<h2 id="s7"><span class="hs-num">7.</span>第三方组件<a class="hs-anchor" href="#s7" aria-label="本节链接">#</a></h2>
+<p>PlantUML（MIT）、Viz.js / Graphviz、markdown-it 及其插件、highlight.js、js-yaml、linkedom 等，许可证全文见 <code>scripts/dist/THIRD_PARTY_LICENSES.txt</code>（构建时自动收集）。</p>
+<h2 id="s8"><span class="hs-num">8.</span>许可证<a class="hs-anchor" href="#s8" aria-label="本节链接">#</a></h2>
+<p>MIT</p>
 </main>
 <a class="hs-top" href="#top" aria-label="回到顶部"><i class="hs-ico" data-icon="arrow-up"></i></a>
-
 <script id="hs-script">
 (() => {
   const doc = document.querySelector('.hs-doc');
@@ -900,3 +1011,5 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
   });
 })();
 </script>
+</body>
+</html>
