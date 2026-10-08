@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Markdown-2-HTML 插件市场（Claude Code 版）。",
-    "version": "2.0.2"
+    "version": "2.1.0"
   },
   "plugins": [
     {
       "name": "markdown-2-html",
       "source": "./plugins/markdown-2-html",
       "description": "文档一律用 Markdown 读写；定稿后导出 html-style 风格的单文件 HTML 给人阅读（右侧大纲、自动序号、提示块与状态标签、可缩放全屏的 PlantUML 图、表格全屏），无外部依赖；AI 不读取也不修改生成的 HTML。",
-      "version": "2.0.2",
+      "version": "2.1.0",
       "author": {
         "name": "Markdown-2-HTML contributors"
       },

@@ -34,7 +34,7 @@ for (const dir of [...packages].sort()) {
   sections.push(`${pkg.name}@${pkg.version}（${pkg.license ?? '未声明'}）\n${'-'.repeat(60)}\n${text}`);
 }
 const plantuml = join(ROOT, 'vendor', 'PLANTUML-LICENSE.txt');
-if (existsSync(plantuml)) sections.push(`PlantUML TeaVM 引擎（vendor/plantuml-engine.js）\n${'-'.repeat(60)}\n${readFileSync(plantuml, 'utf8').trim()}`);
+if (existsSync(plantuml)) sections.push(`PlantUML 官方 TeaVM 引擎（vendor/plantuml.js，@plantuml/core 1.2026.8）\n${'-'.repeat(60)}\n${readFileSync(plantuml, 'utf8').trim()}`);
 
 writeFileSync(join(ROOT, 'dist', 'THIRD_PARTY_LICENSES.txt'),
   `Markdown-2-HTML 的 dist/m2h.mjs 与 vendor/ 包含以下第三方组件：\n\n${sections.join('\n\n\n')}\n`);

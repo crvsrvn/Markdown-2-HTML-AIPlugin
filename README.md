@@ -12,7 +12,7 @@
 | 源文件 | CommonMark + GFM 表格，加少量扩展：提示块、状态标签、图例记号、交叉引用、折叠段落、卡片、条目卡片、热力表。语法见 [syntax.md](plugins/markdown-2-html/skills/markdown-2-html/references/syntax.md) |
 | 导出 | 单文件 HTML，双击即可打开；样式、脚本、图表都在文件里，不依赖任何外部服务（只有字体从 Google Fonts 加载，失败时用本机字体） |
 | 样式 | 沿用 html-style v1.8.1：Comic Sans MS 16px、右侧可筛选可折叠的大纲、自动章节序号、`#FCFCFB` / `#151515` 底色、988px 版心、语义提示块、状态标签、ID 着色 |
-| 图表 | PlantUML 源码在导出时用官方纯 JS 引擎渲染成 SVG 内联，不需要 Java；可拖动、滚轮缩放、双击网页全屏 |
+| 图表 | PlantUML 源码在导出时用官方纯 JS 引擎（`@plantuml/core`）渲染成 SVG 内联，不需要 Java；文字按本机字体测量，排版与 Java 版一致，字体缺失时用操作系统默认字体；可拖动、滚轮缩放、双击网页全屏 |
 | 表格与代码 | 表格网页全屏、表头吸顶；代码导出时高亮，超过 25 行默认折叠 |
 | 检查 | 未知语法、不存在的页内链接、PlantUML 语法错误都会让导出报错 |
 | 迁移 | 旧版 html-style 页面可转成 Markdown，并逐项比对原页面与新导出页面 |
@@ -112,7 +112,7 @@ plugins/markdown-2-html/
     scripts/src/                           导出工具源码
     scripts/build.mjs                      打包脚本：生成 dist/m2h.mjs 与第三方许可证清单
     scripts/dist/m2h.mjs                   打包后的导出工具（提交到仓库）
-    scripts/vendor/plantuml-engine.js      PlantUML 官方 TeaVM 引擎（来自 @plantuml/mcp-js 0.2.2）
+    scripts/vendor/plantuml.js             PlantUML 官方 TeaVM 引擎（@plantuml/core 1.2026.8，原样使用）
     scripts/test/sample.md                 语法样例
 ```
 
@@ -125,7 +125,7 @@ plugins/markdown-2-html/
 
 ## 第三方组件
 
-PlantUML（MIT）、Viz.js / Graphviz、markdown-it 及其插件、highlight.js、js-yaml、linkedom 等，许可证全文见 `scripts/dist/THIRD_PARTY_LICENSES.txt`（构建时自动收集）。
+PlantUML（MIT）、Viz.js / Graphviz、markdown-it 及其插件、highlight.js、js-yaml、linkedom、fontkit 等，许可证全文见 `scripts/dist/THIRD_PARTY_LICENSES.txt`（构建时自动收集）。
 
 ## 许可证
 
