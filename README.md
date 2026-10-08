@@ -13,12 +13,13 @@
 | 导出 | 单文件 HTML，双击即可打开；样式、脚本、图表都在文件里，不依赖任何外部服务（只有字体从 Google Fonts 加载，失败时用本机字体） |
 | 样式 | 沿用 html-style v1.8.1：Comic Sans MS 16px、右侧可筛选可折叠的大纲、自动章节序号、`#FCFCFB` / `#151515` 底色、988px 版心、语义提示块、状态标签、ID 着色 |
 | 图表 | PlantUML 源码在导出时用官方纯 JS 引擎（`@plantuml/core`）渲染成 SVG 内联，不需要 Java；文字按本机字体测量，排版与 Java 版一致，字体缺失时用操作系统默认字体；可拖动、滚轮缩放、双击网页全屏 |
+| 单独画图 | 文档之外的图（回答里配图、把 `.puml` 导出成 SVG）由 plantuml 技能负责，与导出共用同一个渲染引擎 |
 | 表格与代码 | 表格网页全屏、表头吸顶；代码导出时高亮，超过 25 行默认折叠 |
 | 检查 | 未知语法、不存在的页内链接、PlantUML 语法错误都会让导出报错 |
 | 迁移 | 旧版 html-style 页面可转成 Markdown，并逐项比对原页面与新导出页面 |
 | 读取守卫 | Claude Code：hook 拦截 Read、Edit、Write、Grep、Bash、PowerShell 对生成 HTML 的读取和修改。Codex 没有对应 hook，靠 Skill 里的规则约束 |
 
-完整规则见 [SKILL.md](plugins/markdown-2-html/skills/markdown-2-html/SKILL.md)。
+完整规则见 [SKILL.md](plugins/markdown-2-html/skills/markdown-2-html/SKILL.md)；单独画图见 [plantuml/SKILL.md](plugins/markdown-2-html/skills/plantuml/SKILL.md)。
 
 ## 运行要求
 
@@ -72,7 +73,7 @@ codex plugin add markdown-2-html@markdown-2-html-aiplugin
 
 ### 仅安装 Skill
 
-把 `plugins/markdown-2-html/skills/markdown-2-html/` 整个目录复制到工具的用户级 Skills 目录（例如 Claude Code 的 `~/.claude/skills/markdown-2-html/`）。这种方式没有读取守卫 hook，只靠 Skill 规则约束。与插件安装二选一。
+把 `plugins/markdown-2-html/skills/markdown-2-html/` 整个目录复制到工具的用户级 Skills 目录（例如 Claude Code 的 `~/.claude/skills/markdown-2-html/`）。这种方式没有读取守卫 hook，只靠 Skill 规则约束。与插件安装二选一。需要单独画图时，把 `skills/plantuml/` 也复制到同一个 Skills 目录，两个目录保持同级。
 
 ### 更新
 
@@ -85,13 +86,14 @@ claude plugin update markdown-2-html@markdown-2-html-aiplugin
 
 ## 使用
 
-不需要记命令。直接说“把这份方案写成文档”“定稿了，导出 HTML”“把这个旧 HTML 页面迁移成 Markdown”即可。AI 调用的命令如下（`<技能目录>` 为 `plugins/markdown-2-html/skills/markdown-2-html`）：
+不需要记命令。直接说“把这份方案写成文档”“定稿了，导出 HTML”“把这个旧 HTML 页面迁移成 Markdown”“画一张登录流程的时序图”即可。AI 调用的命令如下（`<技能目录>` 为 `plugins/markdown-2-html/skills/markdown-2-html`）：
 
 ```bash
 node <技能目录>/scripts/dist/m2h.mjs check  doc.md
 node <技能目录>/scripts/dist/m2h.mjs build  doc.md [-o out.html]
 node <技能目录>/scripts/dist/m2h.mjs migrate page.html doc.md [--puml-dir <目录>]
 node <技能目录>/scripts/dist/m2h.mjs verify 原页面.html 导出页面.html
+node <技能目录>/scripts/dist/m2h.mjs render diagram.puml [-o out.svg]
 ```
 
 ## 目录结构
@@ -114,6 +116,8 @@ plugins/markdown-2-html/
     scripts/dist/m2h.mjs                   打包后的导出工具（提交到仓库）
     scripts/vendor/plantuml.js             PlantUML 官方 TeaVM 引擎（@plantuml/core 1.2026.8，原样使用）
     scripts/test/sample.md                 语法样例
+  skills/plantuml/
+    SKILL.md                               单独画图：回答里配图、导出 SVG（调用上面的 m2h.mjs render）
 ```
 
 ## 维护

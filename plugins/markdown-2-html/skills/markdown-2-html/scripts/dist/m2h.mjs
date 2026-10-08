@@ -218524,7 +218524,7 @@ function createMd() {
 }
 
 // src/render.mjs
-var VERSION = "2.1.0";
+var VERSION = "2.2.0";
 var GENERATOR = `Markdown-2-HTML/${VERSION}`;
 var SCRIPTS = join4(dirname2(fileURLToPath2(import.meta.url)), "..");
 var ASSETS = join4(SCRIPTS, "..", "assets");
@@ -218676,7 +218676,8 @@ var USAGE = `\u7528\u6CD5\uFF1A
   node m2h.mjs build <doc.md> [-o <out.html>]
   node m2h.mjs check <doc.md>
   node m2h.mjs migrate <page.html> <doc.md> [--puml-dir <\u76EE\u5F55>]
-  node m2h.mjs verify <\u539F\u9875\u9762.html> <\u5BFC\u51FA\u9875\u9762.html>`;
+  node m2h.mjs verify <\u539F\u9875\u9762.html> <\u5BFC\u51FA\u9875\u9762.html>
+  node m2h.mjs render <\u56FE.puml | -> [-o <out.svg>]`;
 function option(args, name) {
   const i = args.indexOf(name);
   return i < 0 ? null : args.splice(i, 2)[1];
@@ -218711,6 +218712,16 @@ async function main([command, ...args]) {
 ${report.join("\n")}`);
     process.exitCode = ok ? 0 : 1;
     return;
+  }
+  if (command === "render") {
+    const out = option(args, "-o");
+    const [input] = args;
+    if (!input || input === "-" && !out) throw new Error(USAGE);
+    const outPath = out ?? resolve2(input).replace(/\.(puml|plantuml|pu|txt)$/i, "") + ".svg";
+    if (!/\.svg$/i.test(outPath)) throw new Error(`\u53EA\u652F\u6301\u8F93\u51FA SVG\uFF1A${outPath}`);
+    const svg = await renderPlantUml(readFileSync4(input === "-" ? 0 : input, "utf8"));
+    writeFileSync2(outPath, svg);
+    return console.log(`\u5DF2\u6E32\u67D3 ${outPath}\uFF08${kb(svg)}\uFF09`);
   }
   throw new Error(USAGE);
 }

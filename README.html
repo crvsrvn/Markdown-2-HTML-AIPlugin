@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="generator" content="Markdown-2-HTML/2.1.0">
+<meta name="generator" content="Markdown-2-HTML/2.2.0">
 <meta name="m2h-source" content="README.md">
 <title>Markdown-2-HTML</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -504,6 +504,10 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
 <td>PlantUML 源码在导出时用官方纯 JS 引擎（<code>@plantuml/core</code>）渲染成 SVG 内联，不需要 Java；文字按本机字体测量，排版与 Java 版一致，字体缺失时用操作系统默认字体；可拖动、滚轮缩放、双击网页全屏</td>
 </tr>
 <tr>
+<td>单独画图</td>
+<td>文档之外的图（回答里配图、把 <code>.puml</code> 导出成 SVG）由 plantuml 技能负责，与导出共用同一个渲染引擎</td>
+</tr>
+<tr>
 <td>表格与代码</td>
 <td>表格网页全屏、表头吸顶；代码导出时高亮，超过 25 行默认折叠</td>
 </tr>
@@ -521,7 +525,7 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
 </tr>
 </tbody>
 </table></div>
-<p>完整规则见 <a href="plugins/markdown-2-html/skills/markdown-2-html/SKILL.md">SKILL.md</a>。</p>
+<p>完整规则见 <a href="plugins/markdown-2-html/skills/markdown-2-html/SKILL.md">SKILL.md</a>；单独画图见 <a href="plugins/markdown-2-html/skills/plantuml/SKILL.md">plantuml/SKILL.md</a>。</p>
 <h2 id="s2"><span class="hs-num">2.</span>运行要求<a class="hs-anchor" href="#s2" aria-label="本节链接">#</a></h2>
 <p>Node.js 18 或更新版本。导出工具已打包成单个文件 <code>scripts/dist/m2h.mjs</code>，PlantUML 引擎在 <code>scripts/vendor/</code> 里，使用时不需要 <code>npm install</code>。</p>
 <h2 id="s3"><span class="hs-num">3.</span>安装<a class="hs-anchor" href="#s3" aria-label="本节链接">#</a></h2>
@@ -555,19 +559,20 @@ claude plugin marketplace remove html-style-aiplugin</code></pre></details>
 codex plugin add markdown-2-html@markdown-2-html-aiplugin</code></pre></details>
 <p>较旧的 Codex CLI 没有 <code>codex plugin add</code>，添加市场后在 Codex 里用 <code>/plugins</code> 安装。</p>
 <h3 id="s3-4"><span class="hs-num">3.4</span>仅安装 Skill<a class="hs-anchor" href="#s3-4" aria-label="本节链接">#</a></h3>
-<p>把 <code>plugins/markdown-2-html/skills/markdown-2-html/</code> 整个目录复制到工具的用户级 Skills 目录（例如 Claude Code 的 <code>~/.claude/skills/markdown-2-html/</code>）。这种方式没有读取守卫 hook，只靠 Skill 规则约束。与插件安装二选一。</p>
+<p>把 <code>plugins/markdown-2-html/skills/markdown-2-html/</code> 整个目录复制到工具的用户级 Skills 目录（例如 Claude Code 的 <code>~/.claude/skills/markdown-2-html/</code>）。这种方式没有读取守卫 hook，只靠 Skill 规则约束。与插件安装二选一。需要单独画图时，把 <code>skills/plantuml/</code> 也复制到同一个 Skills 目录，两个目录保持同级。</p>
 <h3 id="s3-5"><span class="hs-num">3.5</span>更新<a class="hs-anchor" href="#s3-5" aria-label="本节链接">#</a></h3>
 <details class="hs-code" open><summary><span class="hs-code-lang">Bash</span><span class="hs-code-meta">2 行</span></summary><pre><code>claude plugin marketplace update markdown-2-html-aiplugin
 claude plugin update markdown-2-html@markdown-2-html-aiplugin</code></pre></details>
 <p><code>claude plugin update</code> 按插件清单里的版本号判断有没有新版本。Codex 安装的是快照：先 <code>codex plugin marketplace upgrade markdown-2-html-aiplugin</code>，再移除并重新添加插件。</p>
 <h2 id="s4"><span class="hs-num">4.</span>使用<a class="hs-anchor" href="#s4" aria-label="本节链接">#</a></h2>
-<p>不需要记命令。直接说“把这份方案写成文档”“定稿了，导出 HTML”“把这个旧 HTML 页面迁移成 Markdown”即可。AI 调用的命令如下（<code>&lt;技能目录&gt;</code> 为 <code>plugins/markdown-2-html/skills/markdown-2-html</code>）：</p>
-<details class="hs-code" open><summary><span class="hs-code-lang">Bash</span><span class="hs-code-meta">4 行</span></summary><pre><code>node &lt;技能目录&gt;/scripts/dist/m2h.mjs check  doc.md
+<p>不需要记命令。直接说“把这份方案写成文档”“定稿了，导出 HTML”“把这个旧 HTML 页面迁移成 Markdown”“画一张登录流程的时序图”即可。AI 调用的命令如下（<code>&lt;技能目录&gt;</code> 为 <code>plugins/markdown-2-html/skills/markdown-2-html</code>）：</p>
+<details class="hs-code" open><summary><span class="hs-code-lang">Bash</span><span class="hs-code-meta">5 行</span></summary><pre><code>node &lt;技能目录&gt;/scripts/dist/m2h.mjs check  doc.md
 node &lt;技能目录&gt;/scripts/dist/m2h.mjs build  doc.md [-o out.html]
 node &lt;技能目录&gt;/scripts/dist/m2h.mjs migrate page.html doc.md [--puml-dir &lt;目录&gt;]
-node &lt;技能目录&gt;/scripts/dist/m2h.mjs verify 原页面.html 导出页面.html</code></pre></details>
+node &lt;技能目录&gt;/scripts/dist/m2h.mjs verify 原页面.html 导出页面.html
+node &lt;技能目录&gt;/scripts/dist/m2h.mjs render diagram.puml [-o out.svg]</code></pre></details>
 <h2 id="s5"><span class="hs-num">5.</span>目录结构<a class="hs-anchor" href="#s5" aria-label="本节链接">#</a></h2>
-<details class="hs-code" open><summary><span class="hs-code-lang">Text</span><span class="hs-code-meta">17 行</span></summary><pre><code>.claude-plugin/marketplace.json            Claude Code 市场清单
+<details class="hs-code" open><summary><span class="hs-code-lang">Text</span><span class="hs-code-meta">19 行</span></summary><pre><code>.claude-plugin/marketplace.json            Claude Code 市场清单
 .agents/plugins/marketplace.json           Codex 市场清单
 README.md / README.html                    说明（README.html 由插件导出，给人阅读）
 plugins/markdown-2-html/
@@ -583,7 +588,9 @@ plugins/markdown-2-html/
     scripts/build.mjs                      打包脚本：生成 dist/m2h.mjs 与第三方许可证清单
     scripts/dist/m2h.mjs                   打包后的导出工具（提交到仓库）
     scripts/vendor/plantuml.js             PlantUML 官方 TeaVM 引擎（@plantuml/core 1.2026.8，原样使用）
-    scripts/test/sample.md                 语法样例</code></pre></details>
+    scripts/test/sample.md                 语法样例
+  skills/plantuml/
+    SKILL.md                               单独画图：回答里配图、导出 SVG（调用上面的 m2h.mjs render）</code></pre></details>
 <h2 id="s6"><span class="hs-num">6.</span>维护<a class="hs-anchor" href="#s6" aria-label="本节链接">#</a></h2>
 <ul>
 <li>改样式或交互：只改 <code>template.html</code> 的字体链接、<code>hs-style</code>、回到顶部标记、<code>hs-script</code> 四块，或 <code>presets.css</code>。</li>
