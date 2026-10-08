@@ -70974,7 +70974,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { inflateRawSync } from "node:zlib";
 var ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-var CACHE_DIR = join(tmpdir(), "markdown-2-html", "plantuml");
+var CACHE_DIR = join(tmpdir(), "markdown-2-html", "plantuml-v2");
 var originalLog = console.log;
 var enginePromise = null;
 var muted = async (fn) => {
@@ -71000,6 +71000,10 @@ async function renderPlantUml(source) {
   const result = JSON.parse(await muted(() => new Promise((resolve3) => engine.renderSvg(source, resolve3))));
   if (result.valid === false || !result.svg) {
     throw new Error(`PlantUML \u6E32\u67D3\u5931\u8D25\uFF1A${result.errorMessage ?? "\u672A\u77E5\u9519\u8BEF"}\uFF08\u7B2C ${result.errorLine ?? "?"} \u884C\uFF09`);
+  }
+  if (result.warnings?.length) {
+    throw new Error(`PlantUML \u8B66\u544A\uFF08\u4F1A\u753B\u8FDB\u56FE\u91CC\uFF09\uFF1A
+  ${result.warnings.join("\n  ")}`);
   }
   mkdirSync(CACHE_DIR, { recursive: true });
   writeFileSync(file, result.svg);
@@ -78109,7 +78113,7 @@ function createMd() {
 }
 
 // src/render.mjs
-var VERSION = "2.0.1";
+var VERSION = "2.0.2";
 var GENERATOR = `Markdown-2-HTML/${VERSION}`;
 var SCRIPTS = join3(dirname2(fileURLToPath2(import.meta.url)), "..");
 var ASSETS = join3(SCRIPTS, "..", "assets");

@@ -8,7 +8,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { inflateRawSync } from 'node:zlib';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const CACHE_DIR = join(tmpdir(), 'markdown-2-html', 'plantuml');
+// v2：旧缓存里可能有带警告的 SVG，换目录使其失效
+const CACHE_DIR = join(tmpdir(), 'markdown-2-html', 'plantuml-v2');
 const originalLog = console.log;
 
 let enginePromise = null;
@@ -28,7 +29,7 @@ const loadEngine = () => (enginePromise ??= muted(async () => {
 
 const hashOf = text => createHash('sha1').update(text).digest('hex').slice(0, 16);
 
-// 渲染单张图，返回 SVG 字符串；语法错误时抛出带行号的异常
+// 渲染单张图，返回 SVG 字符串；语法错误时抛出带行号的异常；有警告（如过时语法）时也抛出，因为引擎会把警告画进图里
 export async function renderPlantUml(source) {
   const file = join(CACHE_DIR, hashOf(source) + '.svg');
   if (existsSync(file)) return readFileSync(file, 'utf8');
@@ -36,6 +37,9 @@ export async function renderPlantUml(source) {
   const result = JSON.parse(await muted(() => new Promise(resolve => engine.renderSvg(source, resolve))));
   if (result.valid === false || !result.svg) {
     throw new Error(`PlantUML 渲染失败：${result.errorMessage ?? '未知错误'}（第 ${result.errorLine ?? '?'} 行）`);
+  }
+  if (result.warnings?.length) {
+    throw new Error(`PlantUML 警告（会画进图里）：\n  ${result.warnings.join('\n  ')}`);
   }
   mkdirSync(CACHE_DIR, { recursive: true });
   writeFileSync(file, result.svg);
