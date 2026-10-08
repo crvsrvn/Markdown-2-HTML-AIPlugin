@@ -77495,7 +77495,7 @@ var KINDS = ["info", "tip", "ok", "warn", "danger", "key", "muted"];
 var escapeHtml2 = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 function parseAttrs(body) {
   const out = { id: null, classes: [], attrs: {} };
-  const re = /#([\w-]+)|\.([\w-]+)|([\w-]+)=(?:"([^"]*)"|(\S+))/g;
+  const re = /#([\p{L}\p{N}_-]+)|\.([\w-]+)|([\w-]+)=(?:"([^"]*)"|(\S+))/gu;
   for (const m of body.matchAll(re)) {
     if (m[1]) out.id = m[1];
     else if (m[2]) out.classes.push(m[2]);
@@ -77868,7 +77868,7 @@ function number(state) {
     parents[level] = { id, children: 0 };
     parents.length = level + 1;
     registry.set(id, num ?? text2);
-    if (num) inline4.children.unshift(htmlToken(state, `<span class="hs-num">${level === 2 ? num + "." : num}</span>`));
+    if (num) inline4.children.unshift(htmlToken(state, `<span class="hs-num">${num.includes(".") ? num : num + "."}</span>`));
     inline4.children.push(htmlToken(state, `<a class="hs-anchor" href="#${escapeHtml2(id)}" aria-label="\u672C\u8282\u94FE\u63A5">#</a>`));
   }
 }
@@ -78109,7 +78109,7 @@ function createMd() {
 }
 
 // src/render.mjs
-var VERSION = "2.0.0";
+var VERSION = "2.0.1";
 var GENERATOR = `Markdown-2-HTML/${VERSION}`;
 var SCRIPTS = join3(dirname2(fileURLToPath2(import.meta.url)), "..");
 var ASSETS = join3(SCRIPTS, "..", "assets");

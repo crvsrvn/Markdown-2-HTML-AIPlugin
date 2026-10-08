@@ -8,7 +8,7 @@ export const escapeHtml = s => String(s)
 // 解析 {#id .cls key=value key="v w"} 的内部；返回 { id, classes, attrs }
 export function parseAttrs(body) {
   const out = { id: null, classes: [], attrs: {} };
-  const re = /#([\w-]+)|\.([\w-]+)|([\w-]+)=(?:"([^"]*)"|(\S+))/g;
+  const re = /#([\p{L}\p{N}_-]+)|\.([\w-]+)|([\w-]+)=(?:"([^"]*)"|(\S+))/gu;
   for (const m of body.matchAll(re)) {
     if (m[1]) out.id = m[1];
     else if (m[2]) out.classes.push(m[2]);

@@ -41,7 +41,7 @@ function number(state) {
     parents.length = level + 1;
     registry.set(id, num ?? text);
 
-    if (num) inline.children.unshift(htmlToken(state, `<span class="hs-num">${level === 2 ? num + '.' : num}</span>`));
+    if (num) inline.children.unshift(htmlToken(state, `<span class="hs-num">${num.includes('.') ? num : num + '.'}</span>`));
     inline.children.push(htmlToken(state, `<a class="hs-anchor" href="#${escapeHtml(id)}" aria-label="本节链接">#</a>`));
   }
 }

@@ -7,7 +7,7 @@ import { createMd } from './md.mjs';
 import { renderPlantUml } from './plantuml.mjs';
 import { escapeHtml, parseFenceInfo } from './util.mjs';
 
-export const VERSION = '2.0.0';
+export const VERSION = '2.0.1';
 // 生成标记：读取守卫（hooks/guard.mjs）只拦截带这个标记的 HTML
 export const GENERATOR = `Markdown-2-HTML/${VERSION}`;
 
