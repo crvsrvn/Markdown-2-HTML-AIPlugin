@@ -338,12 +338,15 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
 .hs-doc figure { margin: 22px 0 28px; }
 .hs-doc figcaption { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-top: 8px; font-size: 13px; color: var(--hs-muted); }
 .hs-doc figcaption > :first-child::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; background: var(--hs-accent); -webkit-mask: var(--hs-i-image) center / contain no-repeat; mask: var(--hs-i-image) center / contain no-repeat; }
-.hs-zoom { position: relative; height: var(--hs-zoom-h, 320px); overflow: hidden; background: var(--hs-plate); border: 1px solid var(--hs-line); border-radius: 6px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; overscroll-behavior: contain; }
+.hs-zoom { position: relative; box-sizing: border-box; max-width: 100%; min-width: 200px; min-height: 120px; height: var(--hs-zoom-h, 320px); overflow: hidden; background: var(--hs-plate); border: 1px solid var(--hs-line); border-radius: 6px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; overscroll-behavior: contain; }
 .hs-zoom[data-plate="none"] { background: var(--hs-surface); }
 .hs-zoom.is-dragging { cursor: grabbing; }
 /* 图保持原始尺寸，只用 transform 缩放：缩放和切换全屏都不重排大图 */
 .hs-zoom > :is(img, svg, canvas) { position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; -webkit-user-drag: none; }
-.hs-zoom.is-full { position: fixed; inset: 0; z-index: 1000; height: auto; border: 0; border-radius: 0; }
+.hs-zoom.is-full { position: fixed; inset: 0; z-index: 1000; width: auto !important; height: auto !important; max-width: none; border: 0; border-radius: 0; }
+/* 右下角的尺寸手柄（图表视窗、图片、视频共用）；全屏时隐藏 */
+.hs-resize { position: absolute; right: 0; bottom: 0; z-index: 2; width: 14px; height: 14px; cursor: nwse-resize; touch-action: none; background: linear-gradient(135deg, transparent 50%, var(--hs-faint) 50% 58%, transparent 58% 70%, var(--hs-faint) 70% 78%, transparent 78%); }
+.is-full > .hs-resize { display: none; }
 .hs-zoom-bar { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 6px; }
 .hs-zoom.is-full .hs-zoom-bar { top: calc(env(safe-area-inset-top, 0px) + 12px); right: 12px; }
 .hs-zoom-pct { padding: 5px 8px; font: 500 12px/1 var(--hs-mono); color: var(--hs-muted); background: var(--hs-surface); border: 1px solid var(--hs-line); border-radius: 4px; font-variant-numeric: tabular-nums; }
@@ -701,6 +704,62 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
     return () => set(!isFull());
   };
 
+  // ---------- 尺寸手柄：拖动右下角改大小；宽度不超过所在内容栏，宽高不小于 MIN_W × MIN_H ----------
+  const MIN_W = 200, MIN_H = 120;
+  // 在 box 右下角放手柄；拖动时把相对按下点的位移交给 onMove，起止时切换 is-resizing
+  const addGrip = (box, title, onStart, onMove) => {
+    const grip = document.createElement('div');
+    grip.className = 'hs-resize';
+    grip.title = title;
+    box.append(grip);
+    grip.addEventListener('pointerdown', e => {
+      if (box.classList.contains('is-full') || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      grip.setPointerCapture(e.pointerId);
+      onStart();
+      box.classList.add('is-resizing');
+      const move = ev => onMove(ev.clientX - e.clientX, ev.clientY - e.clientY);
+      const end = () => {
+        grip.removeEventListener('pointermove', move);
+        box.classList.remove('is-resizing');
+      };
+      grip.addEventListener('pointermove', move);
+      grip.addEventListener('pointerup', end, { once: true });
+      grip.addEventListener('pointercancel', end, { once: true });
+    });
+    return grip;
+  };
+
+  // 图表视窗：宽高各自可调
+  const bindResize = box => {
+    let r, maxW;
+    addGrip(box, '拖动调整大小', () => {
+      r = box.getBoundingClientRect();
+      maxW = Math.max(MIN_W, box.parentElement.clientWidth);
+    }, (dx, dy) => {
+      box.style.width = clamp(r.width + dx, MIN_W, maxW) + 'px';
+      box.style.height = Math.max(MIN_H, r.height + dy) + 'px';
+    });
+  };
+
+  // 图片、视频：改的是元素本身的宽度，高度随比例变化；双击手柄恢复导出时算好的默认大小
+  const bindMediaResize = wrap => {
+    const el = wrap.querySelector(':scope > img, :scope > video');
+    if (!el) return;
+    let r, ratio, minW, maxW;
+    const grip = addGrip(wrap, '拖动等比缩放，双击恢复默认大小', () => {
+      r = el.getBoundingClientRect();
+      ratio = r.width / r.height || 1;
+      maxW = wrap.parentElement.clientWidth;
+      minW = Math.min(maxW, Math.max(MIN_W, MIN_H * ratio));
+    }, (dx, dy) => {
+      const d = Math.abs(dx) >= Math.abs(dy * ratio) ? dx : dy * ratio;
+      el.style.width = clamp(r.width + d, minW, maxW) + 'px';
+    });
+    grip.addEventListener('dblclick', () => { el.style.width = ''; });
+  };
+
   // ---------- 图表：左/右键拖动，滚轮定点缩放，双指缩放，双击全屏 ----------
   const bindZoomInput = (frame, view) => {
     const points = new Map();
@@ -738,7 +797,7 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
     frame.addEventListener('pointerup', release);
     frame.addEventListener('pointercancel', release);
     frame.addEventListener('contextmenu', e => e.preventDefault());
-    frame.addEventListener('dblclick', e => { if (!e.target.closest('button')) view.toggleFull(); });
+    frame.addEventListener('dblclick', e => { if (!e.target.closest('button, .hs-resize')) view.toggleFull(); });
     frame.addEventListener('wheel', e => {
       e.preventDefault();
       const r = frame.getBoundingClientRect();
@@ -801,8 +860,12 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
         fit = Math.min((w - 48) / natW, (frame.clientHeight - 48) / natH, 2);
       } else {
         fit = Math.min(1, w / natW);
-        const h = clamp(natH * fit, 160, innerHeight * 0.7);
-        frame.style.setProperty('--hs-zoom-h', h + 'px');
+        // 用户拖过外框高度时沿用该高度，否则按图高自动适应
+        let h = frame.clientHeight;
+        if (!frame.style.height) {
+          h = clamp(natH * fit, 160, innerHeight * 0.7);
+          frame.style.setProperty('--hs-zoom-h', h + 'px');
+        }
         fit = Math.min(fit, h / natH);
       }
       s = fit;
@@ -842,11 +905,12 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
       });
       ui.resetBtn.addEventListener('click', reset);
       ui.fullBtn.addEventListener('click', toggleFull);
+      bindResize(frame);
 
-      // 尺寸变化后在下一个任务里重新适应，避免在 ResizeObserver 回调内改尺寸
+      // 尺寸变化（含拖动外框）后在下一个任务里重新适应，避免在 ResizeObserver 回调内改尺寸
       let last = '', pending = 0;
       new ResizeObserver(() => {
-        const key = frame.clientWidth + (isFull() ? 'x' + frame.clientHeight : '');
+        const key = frame.clientWidth + 'x' + frame.clientHeight;
         if (key === last) return;
         last = key;
         if (!touched && !pending) pending = setTimeout(() => { pending = 0; reset(); });
@@ -868,6 +932,7 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
   };
   doc.querySelectorAll('figure > img, figure > svg, figure > canvas').forEach(wrap);
   doc.querySelectorAll('.hs-zoom').forEach(initZoom);
+  doc.querySelectorAll('.hs-media').forEach(bindMediaResize);
   // Mermaid 由宿主异步渲染，SVG 出现后再接管
   doc.querySelectorAll('.mermaid').forEach(m => {
     const adopt = () => {

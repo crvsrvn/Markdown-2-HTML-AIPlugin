@@ -4,10 +4,12 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { createMd } from './md.mjs';
+import { measureMedia } from './media-size.mjs';
 import { renderPlantUml } from './plantuml.mjs';
+import { isVideo } from './plugins/media.mjs';
 import { escapeHtml, parseFenceInfo } from './util.mjs';
 
-export const VERSION = '2.2.0';
+export const VERSION = '2.3.0';
 // 生成标记：读取守卫（hooks/guard.mjs）只拦截带这个标记的 HTML
 export const GENERATOR = `Markdown-2-HTML/${VERSION}`;
 
@@ -59,6 +61,22 @@ async function preparePlantUml(tokens, env) {
   }
 }
 
+// 测量独占一段的本地图片与视频，得到让其中文字接近正文字号的默认宽高；外链与读不了的文件按原始尺寸显示
+function prepareMedia(tokens, env, mdPath) {
+  env.media = new Map();
+  const cache = new Map();
+  for (const t of tokens) {
+    for (const img of t.type === 'inline' ? t.children : []) {
+      const src = img.type === 'image' && img.meta?.block ? img.attrGet('src') : '';
+      if (!src || /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(src)) continue;
+      let path;
+      try { path = resolve(dirname(resolve(mdPath)), decodeURIComponent(src.replace(/[?#].*$/, ''))); } catch { continue; }
+      if (!cache.has(path)) cache.set(path, measureMedia(path, isVideo(src)));
+      if (cache.get(path)) env.media.set(img, cache.get(path));
+    }
+  }
+}
+
 function page({ title, toc, body, css, source }) {
   const t = template();
   return `<!doctype html>
@@ -93,6 +111,7 @@ export async function renderDocument(text, { mdPath = 'doc.md', outPath = null }
   const env = { front };
   const tokens = md.parse(source, env);
   await preparePlantUml(tokens, env);
+  prepareMedia(tokens, env, mdPath);
   const body = md.renderer.render(tokens, md.options, env);
   const h1 = tokens.find(t => t.type === 'heading_open' && t.tag === 'h1');
   const title = front.title ?? tokens[tokens.indexOf(h1) + 1]?.content ?? basename(mdPath, '.md');

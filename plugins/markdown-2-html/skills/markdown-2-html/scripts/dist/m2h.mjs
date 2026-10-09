@@ -184184,8 +184184,2159 @@ var require_lib2 = __commonJS({
   }
 });
 
+// node_modules/jpeg-js/lib/encoder.js
+var require_encoder = __commonJS({
+  "node_modules/jpeg-js/lib/encoder.js"(exports, module) {
+    var btoa = btoa || function(buf) {
+      return Buffer.from(buf).toString("base64");
+    };
+    function JPEGEncoder(quality) {
+      var self = this;
+      var fround = Math.round;
+      var ffloor = Math.floor;
+      var YTable = new Array(64);
+      var UVTable = new Array(64);
+      var fdtbl_Y = new Array(64);
+      var fdtbl_UV = new Array(64);
+      var YDC_HT;
+      var UVDC_HT;
+      var YAC_HT;
+      var UVAC_HT;
+      var bitcode = new Array(65535);
+      var category = new Array(65535);
+      var outputfDCTQuant = new Array(64);
+      var DU = new Array(64);
+      var byteout = [];
+      var bytenew = 0;
+      var bytepos = 7;
+      var YDU = new Array(64);
+      var UDU = new Array(64);
+      var VDU = new Array(64);
+      var clt = new Array(256);
+      var RGB_YUV_TABLE = new Array(2048);
+      var currentQuality;
+      var ZigZag = [
+        0,
+        1,
+        5,
+        6,
+        14,
+        15,
+        27,
+        28,
+        2,
+        4,
+        7,
+        13,
+        16,
+        26,
+        29,
+        42,
+        3,
+        8,
+        12,
+        17,
+        25,
+        30,
+        41,
+        43,
+        9,
+        11,
+        18,
+        24,
+        31,
+        40,
+        44,
+        53,
+        10,
+        19,
+        23,
+        32,
+        39,
+        45,
+        52,
+        54,
+        20,
+        22,
+        33,
+        38,
+        46,
+        51,
+        55,
+        60,
+        21,
+        34,
+        37,
+        47,
+        50,
+        56,
+        59,
+        61,
+        35,
+        36,
+        48,
+        49,
+        57,
+        58,
+        62,
+        63
+      ];
+      var std_dc_luminance_nrcodes = [0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0];
+      var std_dc_luminance_values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+      var std_ac_luminance_nrcodes = [0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 125];
+      var std_ac_luminance_values = [
+        1,
+        2,
+        3,
+        0,
+        4,
+        17,
+        5,
+        18,
+        33,
+        49,
+        65,
+        6,
+        19,
+        81,
+        97,
+        7,
+        34,
+        113,
+        20,
+        50,
+        129,
+        145,
+        161,
+        8,
+        35,
+        66,
+        177,
+        193,
+        21,
+        82,
+        209,
+        240,
+        36,
+        51,
+        98,
+        114,
+        130,
+        9,
+        10,
+        22,
+        23,
+        24,
+        25,
+        26,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        201,
+        202,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216,
+        217,
+        218,
+        225,
+        226,
+        227,
+        228,
+        229,
+        230,
+        231,
+        232,
+        233,
+        234,
+        241,
+        242,
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250
+      ];
+      var std_dc_chrominance_nrcodes = [0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0];
+      var std_dc_chrominance_values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+      var std_ac_chrominance_nrcodes = [0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 119];
+      var std_ac_chrominance_values = [
+        0,
+        1,
+        2,
+        3,
+        17,
+        4,
+        5,
+        33,
+        49,
+        6,
+        18,
+        65,
+        81,
+        7,
+        97,
+        113,
+        19,
+        34,
+        50,
+        129,
+        8,
+        20,
+        66,
+        145,
+        161,
+        177,
+        193,
+        9,
+        35,
+        51,
+        82,
+        240,
+        21,
+        98,
+        114,
+        209,
+        10,
+        22,
+        36,
+        52,
+        225,
+        37,
+        241,
+        23,
+        24,
+        25,
+        26,
+        38,
+        39,
+        40,
+        41,
+        42,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        201,
+        202,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216,
+        217,
+        218,
+        226,
+        227,
+        228,
+        229,
+        230,
+        231,
+        232,
+        233,
+        234,
+        242,
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250
+      ];
+      function initQuantTables(sf) {
+        var YQT = [
+          16,
+          11,
+          10,
+          16,
+          24,
+          40,
+          51,
+          61,
+          12,
+          12,
+          14,
+          19,
+          26,
+          58,
+          60,
+          55,
+          14,
+          13,
+          16,
+          24,
+          40,
+          57,
+          69,
+          56,
+          14,
+          17,
+          22,
+          29,
+          51,
+          87,
+          80,
+          62,
+          18,
+          22,
+          37,
+          56,
+          68,
+          109,
+          103,
+          77,
+          24,
+          35,
+          55,
+          64,
+          81,
+          104,
+          113,
+          92,
+          49,
+          64,
+          78,
+          87,
+          103,
+          121,
+          120,
+          101,
+          72,
+          92,
+          95,
+          98,
+          112,
+          100,
+          103,
+          99
+        ];
+        for (var i = 0; i < 64; i++) {
+          var t = ffloor((YQT[i] * sf + 50) / 100);
+          if (t < 1) {
+            t = 1;
+          } else if (t > 255) {
+            t = 255;
+          }
+          YTable[ZigZag[i]] = t;
+        }
+        var UVQT = [
+          17,
+          18,
+          24,
+          47,
+          99,
+          99,
+          99,
+          99,
+          18,
+          21,
+          26,
+          66,
+          99,
+          99,
+          99,
+          99,
+          24,
+          26,
+          56,
+          99,
+          99,
+          99,
+          99,
+          99,
+          47,
+          66,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99,
+          99
+        ];
+        for (var j = 0; j < 64; j++) {
+          var u = ffloor((UVQT[j] * sf + 50) / 100);
+          if (u < 1) {
+            u = 1;
+          } else if (u > 255) {
+            u = 255;
+          }
+          UVTable[ZigZag[j]] = u;
+        }
+        var aasf = [
+          1,
+          1.387039845,
+          1.306562965,
+          1.175875602,
+          1,
+          0.785694958,
+          0.5411961,
+          0.275899379
+        ];
+        var k = 0;
+        for (var row = 0; row < 8; row++) {
+          for (var col = 0; col < 8; col++) {
+            fdtbl_Y[k] = 1 / (YTable[ZigZag[k]] * aasf[row] * aasf[col] * 8);
+            fdtbl_UV[k] = 1 / (UVTable[ZigZag[k]] * aasf[row] * aasf[col] * 8);
+            k++;
+          }
+        }
+      }
+      function computeHuffmanTbl(nrcodes, std_table) {
+        var codevalue = 0;
+        var pos_in_table = 0;
+        var HT = new Array();
+        for (var k = 1; k <= 16; k++) {
+          for (var j = 1; j <= nrcodes[k]; j++) {
+            HT[std_table[pos_in_table]] = [];
+            HT[std_table[pos_in_table]][0] = codevalue;
+            HT[std_table[pos_in_table]][1] = k;
+            pos_in_table++;
+            codevalue++;
+          }
+          codevalue *= 2;
+        }
+        return HT;
+      }
+      function initHuffmanTbl() {
+        YDC_HT = computeHuffmanTbl(std_dc_luminance_nrcodes, std_dc_luminance_values);
+        UVDC_HT = computeHuffmanTbl(std_dc_chrominance_nrcodes, std_dc_chrominance_values);
+        YAC_HT = computeHuffmanTbl(std_ac_luminance_nrcodes, std_ac_luminance_values);
+        UVAC_HT = computeHuffmanTbl(std_ac_chrominance_nrcodes, std_ac_chrominance_values);
+      }
+      function initCategoryNumber() {
+        var nrlower = 1;
+        var nrupper = 2;
+        for (var cat = 1; cat <= 15; cat++) {
+          for (var nr = nrlower; nr < nrupper; nr++) {
+            category[32767 + nr] = cat;
+            bitcode[32767 + nr] = [];
+            bitcode[32767 + nr][1] = cat;
+            bitcode[32767 + nr][0] = nr;
+          }
+          for (var nrneg = -(nrupper - 1); nrneg <= -nrlower; nrneg++) {
+            category[32767 + nrneg] = cat;
+            bitcode[32767 + nrneg] = [];
+            bitcode[32767 + nrneg][1] = cat;
+            bitcode[32767 + nrneg][0] = nrupper - 1 + nrneg;
+          }
+          nrlower <<= 1;
+          nrupper <<= 1;
+        }
+      }
+      function initRGBYUVTable() {
+        for (var i = 0; i < 256; i++) {
+          RGB_YUV_TABLE[i] = 19595 * i;
+          RGB_YUV_TABLE[i + 256 >> 0] = 38470 * i;
+          RGB_YUV_TABLE[i + 512 >> 0] = 7471 * i + 32768;
+          RGB_YUV_TABLE[i + 768 >> 0] = -11059 * i;
+          RGB_YUV_TABLE[i + 1024 >> 0] = -21709 * i;
+          RGB_YUV_TABLE[i + 1280 >> 0] = 32768 * i + 8421375;
+          RGB_YUV_TABLE[i + 1536 >> 0] = -27439 * i;
+          RGB_YUV_TABLE[i + 1792 >> 0] = -5329 * i;
+        }
+      }
+      function writeBits(bs) {
+        var value = bs[0];
+        var posval = bs[1] - 1;
+        while (posval >= 0) {
+          if (value & 1 << posval) {
+            bytenew |= 1 << bytepos;
+          }
+          posval--;
+          bytepos--;
+          if (bytepos < 0) {
+            if (bytenew == 255) {
+              writeByte(255);
+              writeByte(0);
+            } else {
+              writeByte(bytenew);
+            }
+            bytepos = 7;
+            bytenew = 0;
+          }
+        }
+      }
+      function writeByte(value) {
+        byteout.push(value);
+      }
+      function writeWord(value) {
+        writeByte(value >> 8 & 255);
+        writeByte(value & 255);
+      }
+      function fDCTQuant(data, fdtbl) {
+        var d0, d1, d2, d3, d4, d5, d6, d7;
+        var dataOff = 0;
+        var i;
+        var I8 = 8;
+        var I64 = 64;
+        for (i = 0; i < I8; ++i) {
+          d0 = data[dataOff];
+          d1 = data[dataOff + 1];
+          d2 = data[dataOff + 2];
+          d3 = data[dataOff + 3];
+          d4 = data[dataOff + 4];
+          d5 = data[dataOff + 5];
+          d6 = data[dataOff + 6];
+          d7 = data[dataOff + 7];
+          var tmp0 = d0 + d7;
+          var tmp7 = d0 - d7;
+          var tmp1 = d1 + d6;
+          var tmp6 = d1 - d6;
+          var tmp2 = d2 + d5;
+          var tmp5 = d2 - d5;
+          var tmp3 = d3 + d4;
+          var tmp4 = d3 - d4;
+          var tmp10 = tmp0 + tmp3;
+          var tmp13 = tmp0 - tmp3;
+          var tmp11 = tmp1 + tmp2;
+          var tmp12 = tmp1 - tmp2;
+          data[dataOff] = tmp10 + tmp11;
+          data[dataOff + 4] = tmp10 - tmp11;
+          var z1 = (tmp12 + tmp13) * 0.707106781;
+          data[dataOff + 2] = tmp13 + z1;
+          data[dataOff + 6] = tmp13 - z1;
+          tmp10 = tmp4 + tmp5;
+          tmp11 = tmp5 + tmp6;
+          tmp12 = tmp6 + tmp7;
+          var z5 = (tmp10 - tmp12) * 0.382683433;
+          var z2 = 0.5411961 * tmp10 + z5;
+          var z4 = 1.306562965 * tmp12 + z5;
+          var z3 = tmp11 * 0.707106781;
+          var z11 = tmp7 + z3;
+          var z13 = tmp7 - z3;
+          data[dataOff + 5] = z13 + z2;
+          data[dataOff + 3] = z13 - z2;
+          data[dataOff + 1] = z11 + z4;
+          data[dataOff + 7] = z11 - z4;
+          dataOff += 8;
+        }
+        dataOff = 0;
+        for (i = 0; i < I8; ++i) {
+          d0 = data[dataOff];
+          d1 = data[dataOff + 8];
+          d2 = data[dataOff + 16];
+          d3 = data[dataOff + 24];
+          d4 = data[dataOff + 32];
+          d5 = data[dataOff + 40];
+          d6 = data[dataOff + 48];
+          d7 = data[dataOff + 56];
+          var tmp0p2 = d0 + d7;
+          var tmp7p2 = d0 - d7;
+          var tmp1p2 = d1 + d6;
+          var tmp6p2 = d1 - d6;
+          var tmp2p2 = d2 + d5;
+          var tmp5p2 = d2 - d5;
+          var tmp3p2 = d3 + d4;
+          var tmp4p2 = d3 - d4;
+          var tmp10p2 = tmp0p2 + tmp3p2;
+          var tmp13p2 = tmp0p2 - tmp3p2;
+          var tmp11p2 = tmp1p2 + tmp2p2;
+          var tmp12p2 = tmp1p2 - tmp2p2;
+          data[dataOff] = tmp10p2 + tmp11p2;
+          data[dataOff + 32] = tmp10p2 - tmp11p2;
+          var z1p2 = (tmp12p2 + tmp13p2) * 0.707106781;
+          data[dataOff + 16] = tmp13p2 + z1p2;
+          data[dataOff + 48] = tmp13p2 - z1p2;
+          tmp10p2 = tmp4p2 + tmp5p2;
+          tmp11p2 = tmp5p2 + tmp6p2;
+          tmp12p2 = tmp6p2 + tmp7p2;
+          var z5p2 = (tmp10p2 - tmp12p2) * 0.382683433;
+          var z2p2 = 0.5411961 * tmp10p2 + z5p2;
+          var z4p2 = 1.306562965 * tmp12p2 + z5p2;
+          var z3p2 = tmp11p2 * 0.707106781;
+          var z11p2 = tmp7p2 + z3p2;
+          var z13p2 = tmp7p2 - z3p2;
+          data[dataOff + 40] = z13p2 + z2p2;
+          data[dataOff + 24] = z13p2 - z2p2;
+          data[dataOff + 8] = z11p2 + z4p2;
+          data[dataOff + 56] = z11p2 - z4p2;
+          dataOff++;
+        }
+        var fDCTQuant2;
+        for (i = 0; i < I64; ++i) {
+          fDCTQuant2 = data[i] * fdtbl[i];
+          outputfDCTQuant[i] = fDCTQuant2 > 0 ? fDCTQuant2 + 0.5 | 0 : fDCTQuant2 - 0.5 | 0;
+        }
+        return outputfDCTQuant;
+      }
+      function writeAPP0() {
+        writeWord(65504);
+        writeWord(16);
+        writeByte(74);
+        writeByte(70);
+        writeByte(73);
+        writeByte(70);
+        writeByte(0);
+        writeByte(1);
+        writeByte(1);
+        writeByte(0);
+        writeWord(1);
+        writeWord(1);
+        writeByte(0);
+        writeByte(0);
+      }
+      function writeAPP1(exifBuffer) {
+        if (!exifBuffer) return;
+        writeWord(65505);
+        if (exifBuffer[0] === 69 && exifBuffer[1] === 120 && exifBuffer[2] === 105 && exifBuffer[3] === 102) {
+          writeWord(exifBuffer.length + 2);
+        } else {
+          writeWord(exifBuffer.length + 5 + 2);
+          writeByte(69);
+          writeByte(120);
+          writeByte(105);
+          writeByte(102);
+          writeByte(0);
+        }
+        for (var i = 0; i < exifBuffer.length; i++) {
+          writeByte(exifBuffer[i]);
+        }
+      }
+      function writeSOF0(width, height) {
+        writeWord(65472);
+        writeWord(17);
+        writeByte(8);
+        writeWord(height);
+        writeWord(width);
+        writeByte(3);
+        writeByte(1);
+        writeByte(17);
+        writeByte(0);
+        writeByte(2);
+        writeByte(17);
+        writeByte(1);
+        writeByte(3);
+        writeByte(17);
+        writeByte(1);
+      }
+      function writeDQT() {
+        writeWord(65499);
+        writeWord(132);
+        writeByte(0);
+        for (var i = 0; i < 64; i++) {
+          writeByte(YTable[i]);
+        }
+        writeByte(1);
+        for (var j = 0; j < 64; j++) {
+          writeByte(UVTable[j]);
+        }
+      }
+      function writeDHT() {
+        writeWord(65476);
+        writeWord(418);
+        writeByte(0);
+        for (var i = 0; i < 16; i++) {
+          writeByte(std_dc_luminance_nrcodes[i + 1]);
+        }
+        for (var j = 0; j <= 11; j++) {
+          writeByte(std_dc_luminance_values[j]);
+        }
+        writeByte(16);
+        for (var k = 0; k < 16; k++) {
+          writeByte(std_ac_luminance_nrcodes[k + 1]);
+        }
+        for (var l = 0; l <= 161; l++) {
+          writeByte(std_ac_luminance_values[l]);
+        }
+        writeByte(1);
+        for (var m = 0; m < 16; m++) {
+          writeByte(std_dc_chrominance_nrcodes[m + 1]);
+        }
+        for (var n = 0; n <= 11; n++) {
+          writeByte(std_dc_chrominance_values[n]);
+        }
+        writeByte(17);
+        for (var o = 0; o < 16; o++) {
+          writeByte(std_ac_chrominance_nrcodes[o + 1]);
+        }
+        for (var p = 0; p <= 161; p++) {
+          writeByte(std_ac_chrominance_values[p]);
+        }
+      }
+      function writeCOM(comments) {
+        if (typeof comments === "undefined" || comments.constructor !== Array) return;
+        comments.forEach((e) => {
+          if (typeof e !== "string") return;
+          writeWord(65534);
+          var l = e.length;
+          writeWord(l + 2);
+          var i;
+          for (i = 0; i < l; i++)
+            writeByte(e.charCodeAt(i));
+        });
+      }
+      function writeSOS() {
+        writeWord(65498);
+        writeWord(12);
+        writeByte(3);
+        writeByte(1);
+        writeByte(0);
+        writeByte(2);
+        writeByte(17);
+        writeByte(3);
+        writeByte(17);
+        writeByte(0);
+        writeByte(63);
+        writeByte(0);
+      }
+      function processDU(CDU, fdtbl, DC, HTDC, HTAC) {
+        var EOB = HTAC[0];
+        var M16zeroes = HTAC[240];
+        var pos;
+        var I16 = 16;
+        var I63 = 63;
+        var I64 = 64;
+        var DU_DCT = fDCTQuant(CDU, fdtbl);
+        for (var j = 0; j < I64; ++j) {
+          DU[ZigZag[j]] = DU_DCT[j];
+        }
+        var Diff = DU[0] - DC;
+        DC = DU[0];
+        if (Diff == 0) {
+          writeBits(HTDC[0]);
+        } else {
+          pos = 32767 + Diff;
+          writeBits(HTDC[category[pos]]);
+          writeBits(bitcode[pos]);
+        }
+        var end0pos = 63;
+        for (; end0pos > 0 && DU[end0pos] == 0; end0pos--) {
+        }
+        ;
+        if (end0pos == 0) {
+          writeBits(EOB);
+          return DC;
+        }
+        var i = 1;
+        var lng;
+        while (i <= end0pos) {
+          var startpos = i;
+          for (; DU[i] == 0 && i <= end0pos; ++i) {
+          }
+          var nrzeroes = i - startpos;
+          if (nrzeroes >= I16) {
+            lng = nrzeroes >> 4;
+            for (var nrmarker = 1; nrmarker <= lng; ++nrmarker)
+              writeBits(M16zeroes);
+            nrzeroes = nrzeroes & 15;
+          }
+          pos = 32767 + DU[i];
+          writeBits(HTAC[(nrzeroes << 4) + category[pos]]);
+          writeBits(bitcode[pos]);
+          i++;
+        }
+        if (end0pos != I63) {
+          writeBits(EOB);
+        }
+        return DC;
+      }
+      function initCharLookupTable() {
+        var sfcc = String.fromCharCode;
+        for (var i = 0; i < 256; i++) {
+          clt[i] = sfcc(i);
+        }
+      }
+      this.encode = function(image2, quality2) {
+        var time_start = (/* @__PURE__ */ new Date()).getTime();
+        if (quality2) setQuality(quality2);
+        byteout = new Array();
+        bytenew = 0;
+        bytepos = 7;
+        writeWord(65496);
+        writeAPP0();
+        writeCOM(image2.comments);
+        writeAPP1(image2.exifBuffer);
+        writeDQT();
+        writeSOF0(image2.width, image2.height);
+        writeDHT();
+        writeSOS();
+        var DCY = 0;
+        var DCU = 0;
+        var DCV = 0;
+        bytenew = 0;
+        bytepos = 7;
+        this.encode.displayName = "_encode_";
+        var imageData = image2.data;
+        var width = image2.width;
+        var height = image2.height;
+        var quadWidth = width * 4;
+        var tripleWidth = width * 3;
+        var x, y = 0;
+        var r, g, b;
+        var start, p, col, row, pos;
+        while (y < height) {
+          x = 0;
+          while (x < quadWidth) {
+            start = quadWidth * y + x;
+            p = start;
+            col = -1;
+            row = 0;
+            for (pos = 0; pos < 64; pos++) {
+              row = pos >> 3;
+              col = (pos & 7) * 4;
+              p = start + row * quadWidth + col;
+              if (y + row >= height) {
+                p -= quadWidth * (y + 1 + row - height);
+              }
+              if (x + col >= quadWidth) {
+                p -= x + col - quadWidth + 4;
+              }
+              r = imageData[p++];
+              g = imageData[p++];
+              b = imageData[p++];
+              YDU[pos] = (RGB_YUV_TABLE[r] + RGB_YUV_TABLE[g + 256 >> 0] + RGB_YUV_TABLE[b + 512 >> 0] >> 16) - 128;
+              UDU[pos] = (RGB_YUV_TABLE[r + 768 >> 0] + RGB_YUV_TABLE[g + 1024 >> 0] + RGB_YUV_TABLE[b + 1280 >> 0] >> 16) - 128;
+              VDU[pos] = (RGB_YUV_TABLE[r + 1280 >> 0] + RGB_YUV_TABLE[g + 1536 >> 0] + RGB_YUV_TABLE[b + 1792 >> 0] >> 16) - 128;
+            }
+            DCY = processDU(YDU, fdtbl_Y, DCY, YDC_HT, YAC_HT);
+            DCU = processDU(UDU, fdtbl_UV, DCU, UVDC_HT, UVAC_HT);
+            DCV = processDU(VDU, fdtbl_UV, DCV, UVDC_HT, UVAC_HT);
+            x += 32;
+          }
+          y += 8;
+        }
+        if (bytepos >= 0) {
+          var fillbits = [];
+          fillbits[1] = bytepos + 1;
+          fillbits[0] = (1 << bytepos + 1) - 1;
+          writeBits(fillbits);
+        }
+        writeWord(65497);
+        if (typeof module === "undefined") return new Uint8Array(byteout);
+        return Buffer.from(byteout);
+        var jpegDataUri = "data:image/jpeg;base64," + btoa(byteout.join(""));
+        byteout = [];
+        var duration = (/* @__PURE__ */ new Date()).getTime() - time_start;
+        return jpegDataUri;
+      };
+      function setQuality(quality2) {
+        if (quality2 <= 0) {
+          quality2 = 1;
+        }
+        if (quality2 > 100) {
+          quality2 = 100;
+        }
+        if (currentQuality == quality2) return;
+        var sf = 0;
+        if (quality2 < 50) {
+          sf = Math.floor(5e3 / quality2);
+        } else {
+          sf = Math.floor(200 - quality2 * 2);
+        }
+        initQuantTables(sf);
+        currentQuality = quality2;
+      }
+      function init() {
+        var time_start = (/* @__PURE__ */ new Date()).getTime();
+        if (!quality) quality = 50;
+        initCharLookupTable();
+        initHuffmanTbl();
+        initCategoryNumber();
+        initRGBYUVTable();
+        setQuality(quality);
+        var duration = (/* @__PURE__ */ new Date()).getTime() - time_start;
+      }
+      init();
+    }
+    if (typeof module !== "undefined") {
+      module.exports = encode2;
+    } else if (typeof window !== "undefined") {
+      window["jpeg-js"] = window["jpeg-js"] || {};
+      window["jpeg-js"].encode = encode2;
+    }
+    function encode2(imgData, qu) {
+      if (typeof qu === "undefined") qu = 50;
+      var encoder = new JPEGEncoder(qu);
+      var data = encoder.encode(imgData, qu);
+      return {
+        data,
+        width: imgData.width,
+        height: imgData.height
+      };
+    }
+  }
+});
+
+// node_modules/jpeg-js/lib/decoder.js
+var require_decoder = __commonJS({
+  "node_modules/jpeg-js/lib/decoder.js"(exports, module) {
+    var JpegImage = (function jpegImage() {
+      "use strict";
+      var dctZigZag = new Int32Array([
+        0,
+        1,
+        8,
+        16,
+        9,
+        2,
+        3,
+        10,
+        17,
+        24,
+        32,
+        25,
+        18,
+        11,
+        4,
+        5,
+        12,
+        19,
+        26,
+        33,
+        40,
+        48,
+        41,
+        34,
+        27,
+        20,
+        13,
+        6,
+        7,
+        14,
+        21,
+        28,
+        35,
+        42,
+        49,
+        56,
+        57,
+        50,
+        43,
+        36,
+        29,
+        22,
+        15,
+        23,
+        30,
+        37,
+        44,
+        51,
+        58,
+        59,
+        52,
+        45,
+        38,
+        31,
+        39,
+        46,
+        53,
+        60,
+        61,
+        54,
+        47,
+        55,
+        62,
+        63
+      ]);
+      var dctCos1 = 4017;
+      var dctSin1 = 799;
+      var dctCos3 = 3406;
+      var dctSin3 = 2276;
+      var dctCos6 = 1567;
+      var dctSin6 = 3784;
+      var dctSqrt2 = 5793;
+      var dctSqrt1d2 = 2896;
+      function constructor() {
+      }
+      function buildHuffmanTable(codeLengths, values) {
+        var k = 0, code2 = [], i, j, length = 16;
+        while (length > 0 && !codeLengths[length - 1])
+          length--;
+        code2.push({ children: [], index: 0 });
+        var p = code2[0], q;
+        for (i = 0; i < length; i++) {
+          for (j = 0; j < codeLengths[i]; j++) {
+            p = code2.pop();
+            p.children[p.index] = values[k];
+            while (p.index > 0) {
+              if (code2.length === 0)
+                throw new Error("Could not recreate Huffman Table");
+              p = code2.pop();
+            }
+            p.index++;
+            code2.push(p);
+            while (code2.length <= i) {
+              code2.push(q = { children: [], index: 0 });
+              p.children[p.index] = q.children;
+              p = q;
+            }
+            k++;
+          }
+          if (i + 1 < length) {
+            code2.push(q = { children: [], index: 0 });
+            p.children[p.index] = q.children;
+            p = q;
+          }
+        }
+        return code2[0].children;
+      }
+      function decodeScan(data, offset, frame, components, resetInterval, spectralStart, spectralEnd, successivePrev, successive, opts) {
+        var precision = frame.precision;
+        var samplesPerLine = frame.samplesPerLine;
+        var scanLines = frame.scanLines;
+        var mcusPerLine = frame.mcusPerLine;
+        var progressive = frame.progressive;
+        var maxH = frame.maxH, maxV = frame.maxV;
+        var startOffset = offset, bitsData = 0, bitsCount = 0;
+        function readBit() {
+          if (bitsCount > 0) {
+            bitsCount--;
+            return bitsData >> bitsCount & 1;
+          }
+          bitsData = data[offset++];
+          if (bitsData == 255) {
+            var nextByte = data[offset++];
+            if (nextByte) {
+              throw new Error("unexpected marker: " + (bitsData << 8 | nextByte).toString(16));
+            }
+          }
+          bitsCount = 7;
+          return bitsData >>> 7;
+        }
+        function decodeHuffman(tree) {
+          var node = tree, bit;
+          while ((bit = readBit()) !== null) {
+            node = node[bit];
+            if (typeof node === "number")
+              return node;
+            if (typeof node !== "object")
+              throw new Error("invalid huffman sequence");
+          }
+          return null;
+        }
+        function receive(length) {
+          var n2 = 0;
+          while (length > 0) {
+            var bit = readBit();
+            if (bit === null) return;
+            n2 = n2 << 1 | bit;
+            length--;
+          }
+          return n2;
+        }
+        function receiveAndExtend(length) {
+          var n2 = receive(length);
+          if (n2 >= 1 << length - 1)
+            return n2;
+          return n2 + (-1 << length) + 1;
+        }
+        function decodeBaseline(component2, zz) {
+          var t = decodeHuffman(component2.huffmanTableDC);
+          var diff = t === 0 ? 0 : receiveAndExtend(t);
+          zz[0] = component2.pred += diff;
+          var k2 = 1;
+          while (k2 < 64) {
+            var rs = decodeHuffman(component2.huffmanTableAC);
+            var s = rs & 15, r = rs >> 4;
+            if (s === 0) {
+              if (r < 15)
+                break;
+              k2 += 16;
+              continue;
+            }
+            k2 += r;
+            var z = dctZigZag[k2];
+            zz[z] = receiveAndExtend(s);
+            k2++;
+          }
+        }
+        function decodeDCFirst(component2, zz) {
+          var t = decodeHuffman(component2.huffmanTableDC);
+          var diff = t === 0 ? 0 : receiveAndExtend(t) << successive;
+          zz[0] = component2.pred += diff;
+        }
+        function decodeDCSuccessive(component2, zz) {
+          zz[0] |= readBit() << successive;
+        }
+        var eobrun = 0;
+        function decodeACFirst(component2, zz) {
+          if (eobrun > 0) {
+            eobrun--;
+            return;
+          }
+          var k2 = spectralStart, e = spectralEnd;
+          while (k2 <= e) {
+            var rs = decodeHuffman(component2.huffmanTableAC);
+            var s = rs & 15, r = rs >> 4;
+            if (s === 0) {
+              if (r < 15) {
+                eobrun = receive(r) + (1 << r) - 1;
+                break;
+              }
+              k2 += 16;
+              continue;
+            }
+            k2 += r;
+            var z = dctZigZag[k2];
+            zz[z] = receiveAndExtend(s) * (1 << successive);
+            k2++;
+          }
+        }
+        var successiveACState = 0, successiveACNextValue;
+        function decodeACSuccessive(component2, zz) {
+          var k2 = spectralStart, e = spectralEnd, r = 0;
+          while (k2 <= e) {
+            var z = dctZigZag[k2];
+            var direction = zz[z] < 0 ? -1 : 1;
+            switch (successiveACState) {
+              case 0:
+                var rs = decodeHuffman(component2.huffmanTableAC);
+                var s = rs & 15, r = rs >> 4;
+                if (s === 0) {
+                  if (r < 15) {
+                    eobrun = receive(r) + (1 << r);
+                    successiveACState = 4;
+                  } else {
+                    r = 16;
+                    successiveACState = 1;
+                  }
+                } else {
+                  if (s !== 1)
+                    throw new Error("invalid ACn encoding");
+                  successiveACNextValue = receiveAndExtend(s);
+                  successiveACState = r ? 2 : 3;
+                }
+                continue;
+              case 1:
+              // skipping r zero items
+              case 2:
+                if (zz[z])
+                  zz[z] += (readBit() << successive) * direction;
+                else {
+                  r--;
+                  if (r === 0)
+                    successiveACState = successiveACState == 2 ? 3 : 0;
+                }
+                break;
+              case 3:
+                if (zz[z])
+                  zz[z] += (readBit() << successive) * direction;
+                else {
+                  zz[z] = successiveACNextValue << successive;
+                  successiveACState = 0;
+                }
+                break;
+              case 4:
+                if (zz[z])
+                  zz[z] += (readBit() << successive) * direction;
+                break;
+            }
+            k2++;
+          }
+          if (successiveACState === 4) {
+            eobrun--;
+            if (eobrun === 0)
+              successiveACState = 0;
+          }
+        }
+        function decodeMcu(component2, decode3, mcu2, row, col) {
+          var mcuRow = mcu2 / mcusPerLine | 0;
+          var mcuCol = mcu2 % mcusPerLine;
+          var blockRow = mcuRow * component2.v + row;
+          var blockCol = mcuCol * component2.h + col;
+          if (component2.blocks[blockRow] === void 0 && opts.tolerantDecoding)
+            return;
+          decode3(component2, component2.blocks[blockRow][blockCol]);
+        }
+        function decodeBlock(component2, decode3, mcu2) {
+          var blockRow = mcu2 / component2.blocksPerLine | 0;
+          var blockCol = mcu2 % component2.blocksPerLine;
+          if (component2.blocks[blockRow] === void 0 && opts.tolerantDecoding)
+            return;
+          decode3(component2, component2.blocks[blockRow][blockCol]);
+        }
+        var componentsLength = components.length;
+        var component, i, j, k, n;
+        var decodeFn;
+        if (progressive) {
+          if (spectralStart === 0)
+            decodeFn = successivePrev === 0 ? decodeDCFirst : decodeDCSuccessive;
+          else
+            decodeFn = successivePrev === 0 ? decodeACFirst : decodeACSuccessive;
+        } else {
+          decodeFn = decodeBaseline;
+        }
+        var mcu = 0, marker;
+        var mcuExpected;
+        if (componentsLength == 1) {
+          mcuExpected = components[0].blocksPerLine * components[0].blocksPerColumn;
+        } else {
+          mcuExpected = mcusPerLine * frame.mcusPerColumn;
+        }
+        if (!resetInterval) resetInterval = mcuExpected;
+        var h, v;
+        while (mcu < mcuExpected) {
+          for (i = 0; i < componentsLength; i++)
+            components[i].pred = 0;
+          eobrun = 0;
+          if (componentsLength == 1) {
+            component = components[0];
+            for (n = 0; n < resetInterval; n++) {
+              decodeBlock(component, decodeFn, mcu);
+              mcu++;
+            }
+          } else {
+            for (n = 0; n < resetInterval; n++) {
+              for (i = 0; i < componentsLength; i++) {
+                component = components[i];
+                h = component.h;
+                v = component.v;
+                for (j = 0; j < v; j++) {
+                  for (k = 0; k < h; k++) {
+                    decodeMcu(component, decodeFn, mcu, j, k);
+                  }
+                }
+              }
+              mcu++;
+              if (mcu === mcuExpected) break;
+            }
+          }
+          if (mcu === mcuExpected) {
+            do {
+              if (data[offset] === 255) {
+                if (data[offset + 1] !== 0) {
+                  break;
+                }
+              }
+              offset += 1;
+            } while (offset < data.length - 2);
+          }
+          bitsCount = 0;
+          marker = data[offset] << 8 | data[offset + 1];
+          if (marker < 65280) {
+            throw new Error("marker was not found");
+          }
+          if (marker >= 65488 && marker <= 65495) {
+            offset += 2;
+          } else
+            break;
+        }
+        return offset - startOffset;
+      }
+      function buildComponentData(frame, component) {
+        var lines = [];
+        var blocksPerLine = component.blocksPerLine;
+        var blocksPerColumn = component.blocksPerColumn;
+        var samplesPerLine = blocksPerLine << 3;
+        var R = new Int32Array(64), r = new Uint8Array(64);
+        function quantizeAndInverse(zz, dataOut, dataIn) {
+          var qt = component.quantizationTable;
+          var v0, v1, v2, v3, v4, v5, v6, v7, t;
+          var p = dataIn;
+          var i2;
+          for (i2 = 0; i2 < 64; i2++)
+            p[i2] = zz[i2] * qt[i2];
+          for (i2 = 0; i2 < 8; ++i2) {
+            var row = 8 * i2;
+            if (p[1 + row] == 0 && p[2 + row] == 0 && p[3 + row] == 0 && p[4 + row] == 0 && p[5 + row] == 0 && p[6 + row] == 0 && p[7 + row] == 0) {
+              t = dctSqrt2 * p[0 + row] + 512 >> 10;
+              p[0 + row] = t;
+              p[1 + row] = t;
+              p[2 + row] = t;
+              p[3 + row] = t;
+              p[4 + row] = t;
+              p[5 + row] = t;
+              p[6 + row] = t;
+              p[7 + row] = t;
+              continue;
+            }
+            v0 = dctSqrt2 * p[0 + row] + 128 >> 8;
+            v1 = dctSqrt2 * p[4 + row] + 128 >> 8;
+            v2 = p[2 + row];
+            v3 = p[6 + row];
+            v4 = dctSqrt1d2 * (p[1 + row] - p[7 + row]) + 128 >> 8;
+            v7 = dctSqrt1d2 * (p[1 + row] + p[7 + row]) + 128 >> 8;
+            v5 = p[3 + row] << 4;
+            v6 = p[5 + row] << 4;
+            t = v0 - v1 + 1 >> 1;
+            v0 = v0 + v1 + 1 >> 1;
+            v1 = t;
+            t = v2 * dctSin6 + v3 * dctCos6 + 128 >> 8;
+            v2 = v2 * dctCos6 - v3 * dctSin6 + 128 >> 8;
+            v3 = t;
+            t = v4 - v6 + 1 >> 1;
+            v4 = v4 + v6 + 1 >> 1;
+            v6 = t;
+            t = v7 + v5 + 1 >> 1;
+            v5 = v7 - v5 + 1 >> 1;
+            v7 = t;
+            t = v0 - v3 + 1 >> 1;
+            v0 = v0 + v3 + 1 >> 1;
+            v3 = t;
+            t = v1 - v2 + 1 >> 1;
+            v1 = v1 + v2 + 1 >> 1;
+            v2 = t;
+            t = v4 * dctSin3 + v7 * dctCos3 + 2048 >> 12;
+            v4 = v4 * dctCos3 - v7 * dctSin3 + 2048 >> 12;
+            v7 = t;
+            t = v5 * dctSin1 + v6 * dctCos1 + 2048 >> 12;
+            v5 = v5 * dctCos1 - v6 * dctSin1 + 2048 >> 12;
+            v6 = t;
+            p[0 + row] = v0 + v7;
+            p[7 + row] = v0 - v7;
+            p[1 + row] = v1 + v6;
+            p[6 + row] = v1 - v6;
+            p[2 + row] = v2 + v5;
+            p[5 + row] = v2 - v5;
+            p[3 + row] = v3 + v4;
+            p[4 + row] = v3 - v4;
+          }
+          for (i2 = 0; i2 < 8; ++i2) {
+            var col = i2;
+            if (p[1 * 8 + col] == 0 && p[2 * 8 + col] == 0 && p[3 * 8 + col] == 0 && p[4 * 8 + col] == 0 && p[5 * 8 + col] == 0 && p[6 * 8 + col] == 0 && p[7 * 8 + col] == 0) {
+              t = dctSqrt2 * dataIn[i2 + 0] + 8192 >> 14;
+              p[0 * 8 + col] = t;
+              p[1 * 8 + col] = t;
+              p[2 * 8 + col] = t;
+              p[3 * 8 + col] = t;
+              p[4 * 8 + col] = t;
+              p[5 * 8 + col] = t;
+              p[6 * 8 + col] = t;
+              p[7 * 8 + col] = t;
+              continue;
+            }
+            v0 = dctSqrt2 * p[0 * 8 + col] + 2048 >> 12;
+            v1 = dctSqrt2 * p[4 * 8 + col] + 2048 >> 12;
+            v2 = p[2 * 8 + col];
+            v3 = p[6 * 8 + col];
+            v4 = dctSqrt1d2 * (p[1 * 8 + col] - p[7 * 8 + col]) + 2048 >> 12;
+            v7 = dctSqrt1d2 * (p[1 * 8 + col] + p[7 * 8 + col]) + 2048 >> 12;
+            v5 = p[3 * 8 + col];
+            v6 = p[5 * 8 + col];
+            t = v0 - v1 + 1 >> 1;
+            v0 = v0 + v1 + 1 >> 1;
+            v1 = t;
+            t = v2 * dctSin6 + v3 * dctCos6 + 2048 >> 12;
+            v2 = v2 * dctCos6 - v3 * dctSin6 + 2048 >> 12;
+            v3 = t;
+            t = v4 - v6 + 1 >> 1;
+            v4 = v4 + v6 + 1 >> 1;
+            v6 = t;
+            t = v7 + v5 + 1 >> 1;
+            v5 = v7 - v5 + 1 >> 1;
+            v7 = t;
+            t = v0 - v3 + 1 >> 1;
+            v0 = v0 + v3 + 1 >> 1;
+            v3 = t;
+            t = v1 - v2 + 1 >> 1;
+            v1 = v1 + v2 + 1 >> 1;
+            v2 = t;
+            t = v4 * dctSin3 + v7 * dctCos3 + 2048 >> 12;
+            v4 = v4 * dctCos3 - v7 * dctSin3 + 2048 >> 12;
+            v7 = t;
+            t = v5 * dctSin1 + v6 * dctCos1 + 2048 >> 12;
+            v5 = v5 * dctCos1 - v6 * dctSin1 + 2048 >> 12;
+            v6 = t;
+            p[0 * 8 + col] = v0 + v7;
+            p[7 * 8 + col] = v0 - v7;
+            p[1 * 8 + col] = v1 + v6;
+            p[6 * 8 + col] = v1 - v6;
+            p[2 * 8 + col] = v2 + v5;
+            p[5 * 8 + col] = v2 - v5;
+            p[3 * 8 + col] = v3 + v4;
+            p[4 * 8 + col] = v3 - v4;
+          }
+          for (i2 = 0; i2 < 64; ++i2) {
+            var sample2 = 128 + (p[i2] + 8 >> 4);
+            dataOut[i2] = sample2 < 0 ? 0 : sample2 > 255 ? 255 : sample2;
+          }
+        }
+        requestMemoryAllocation(samplesPerLine * blocksPerColumn * 8);
+        var i, j;
+        for (var blockRow = 0; blockRow < blocksPerColumn; blockRow++) {
+          var scanLine = blockRow << 3;
+          for (i = 0; i < 8; i++)
+            lines.push(new Uint8Array(samplesPerLine));
+          for (var blockCol = 0; blockCol < blocksPerLine; blockCol++) {
+            quantizeAndInverse(component.blocks[blockRow][blockCol], r, R);
+            var offset = 0, sample = blockCol << 3;
+            for (j = 0; j < 8; j++) {
+              var line = lines[scanLine + j];
+              for (i = 0; i < 8; i++)
+                line[sample + i] = r[offset++];
+            }
+          }
+        }
+        return lines;
+      }
+      function clampTo8bit(a) {
+        return a < 0 ? 0 : a > 255 ? 255 : a;
+      }
+      constructor.prototype = {
+        load: function load2(path) {
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", path, true);
+          xhr.responseType = "arraybuffer";
+          xhr.onload = (function() {
+            var data = new Uint8Array(xhr.response || xhr.mozResponseArrayBuffer);
+            this.parse(data);
+            if (this.onload)
+              this.onload();
+          }).bind(this);
+          xhr.send(null);
+        },
+        parse: function parse5(data) {
+          var maxResolutionInPixels = this.opts.maxResolutionInMP * 1e3 * 1e3;
+          var offset = 0, length = data.length;
+          function readUint16() {
+            var value = data[offset] << 8 | data[offset + 1];
+            offset += 2;
+            return value;
+          }
+          function readDataBlock() {
+            var length2 = readUint16();
+            var array = data.subarray(offset, offset + length2 - 2);
+            offset += array.length;
+            return array;
+          }
+          function prepareComponents(frame2) {
+            var maxH2 = 1, maxV2 = 1;
+            var component2, componentId2;
+            for (componentId2 in frame2.components) {
+              if (frame2.components.hasOwnProperty(componentId2)) {
+                component2 = frame2.components[componentId2];
+                if (maxH2 < component2.h) maxH2 = component2.h;
+                if (maxV2 < component2.v) maxV2 = component2.v;
+              }
+            }
+            var mcusPerLine = Math.ceil(frame2.samplesPerLine / 8 / maxH2);
+            var mcusPerColumn = Math.ceil(frame2.scanLines / 8 / maxV2);
+            for (componentId2 in frame2.components) {
+              if (frame2.components.hasOwnProperty(componentId2)) {
+                component2 = frame2.components[componentId2];
+                var blocksPerLine = Math.ceil(Math.ceil(frame2.samplesPerLine / 8) * component2.h / maxH2);
+                var blocksPerColumn = Math.ceil(Math.ceil(frame2.scanLines / 8) * component2.v / maxV2);
+                var blocksPerLineForMcu = mcusPerLine * component2.h;
+                var blocksPerColumnForMcu = mcusPerColumn * component2.v;
+                var blocksToAllocate = blocksPerColumnForMcu * blocksPerLineForMcu;
+                var blocks2 = [];
+                requestMemoryAllocation(blocksToAllocate * 256);
+                for (var i2 = 0; i2 < blocksPerColumnForMcu; i2++) {
+                  var row = [];
+                  for (var j2 = 0; j2 < blocksPerLineForMcu; j2++)
+                    row.push(new Int32Array(64));
+                  blocks2.push(row);
+                }
+                component2.blocksPerLine = blocksPerLine;
+                component2.blocksPerColumn = blocksPerColumn;
+                component2.blocks = blocks2;
+              }
+            }
+            frame2.maxH = maxH2;
+            frame2.maxV = maxV2;
+            frame2.mcusPerLine = mcusPerLine;
+            frame2.mcusPerColumn = mcusPerColumn;
+          }
+          var jfif = null;
+          var adobe = null;
+          var pixels = null;
+          var frame, resetInterval;
+          var quantizationTables = [], frames = [];
+          var huffmanTablesAC = [], huffmanTablesDC = [];
+          var fileMarker = readUint16();
+          var malformedDataOffset = -1;
+          this.comments = [];
+          if (fileMarker != 65496) {
+            throw new Error("SOI not found");
+          }
+          fileMarker = readUint16();
+          while (fileMarker != 65497) {
+            var i, j, l;
+            switch (fileMarker) {
+              case 65280:
+                break;
+              case 65504:
+              // APP0 (Application Specific)
+              case 65505:
+              // APP1
+              case 65506:
+              // APP2
+              case 65507:
+              // APP3
+              case 65508:
+              // APP4
+              case 65509:
+              // APP5
+              case 65510:
+              // APP6
+              case 65511:
+              // APP7
+              case 65512:
+              // APP8
+              case 65513:
+              // APP9
+              case 65514:
+              // APP10
+              case 65515:
+              // APP11
+              case 65516:
+              // APP12
+              case 65517:
+              // APP13
+              case 65518:
+              // APP14
+              case 65519:
+              // APP15
+              case 65534:
+                var appData = readDataBlock();
+                if (fileMarker === 65534) {
+                  var comment2 = String.fromCharCode.apply(null, appData);
+                  this.comments.push(comment2);
+                }
+                if (fileMarker === 65504) {
+                  if (appData[0] === 74 && appData[1] === 70 && appData[2] === 73 && appData[3] === 70 && appData[4] === 0) {
+                    jfif = {
+                      version: { major: appData[5], minor: appData[6] },
+                      densityUnits: appData[7],
+                      xDensity: appData[8] << 8 | appData[9],
+                      yDensity: appData[10] << 8 | appData[11],
+                      thumbWidth: appData[12],
+                      thumbHeight: appData[13],
+                      thumbData: appData.subarray(14, 14 + 3 * appData[12] * appData[13])
+                    };
+                  }
+                }
+                if (fileMarker === 65505) {
+                  if (appData[0] === 69 && appData[1] === 120 && appData[2] === 105 && appData[3] === 102 && appData[4] === 0) {
+                    this.exifBuffer = appData.subarray(5, appData.length);
+                  }
+                }
+                if (fileMarker === 65518) {
+                  if (appData[0] === 65 && appData[1] === 100 && appData[2] === 111 && appData[3] === 98 && appData[4] === 101 && appData[5] === 0) {
+                    adobe = {
+                      version: appData[6],
+                      flags0: appData[7] << 8 | appData[8],
+                      flags1: appData[9] << 8 | appData[10],
+                      transformCode: appData[11]
+                    };
+                  }
+                }
+                break;
+              case 65499:
+                var quantizationTablesLength = readUint16();
+                var quantizationTablesEnd = quantizationTablesLength + offset - 2;
+                while (offset < quantizationTablesEnd) {
+                  var quantizationTableSpec = data[offset++];
+                  requestMemoryAllocation(64 * 4);
+                  var tableData = new Int32Array(64);
+                  if (quantizationTableSpec >> 4 === 0) {
+                    for (j = 0; j < 64; j++) {
+                      var z = dctZigZag[j];
+                      tableData[z] = data[offset++];
+                    }
+                  } else if (quantizationTableSpec >> 4 === 1) {
+                    for (j = 0; j < 64; j++) {
+                      var z = dctZigZag[j];
+                      tableData[z] = readUint16();
+                    }
+                  } else
+                    throw new Error("DQT: invalid table spec");
+                  quantizationTables[quantizationTableSpec & 15] = tableData;
+                }
+                break;
+              case 65472:
+              // SOF0 (Start of Frame, Baseline DCT)
+              case 65473:
+              // SOF1 (Start of Frame, Extended DCT)
+              case 65474:
+                readUint16();
+                frame = {};
+                frame.extended = fileMarker === 65473;
+                frame.progressive = fileMarker === 65474;
+                frame.precision = data[offset++];
+                frame.scanLines = readUint16();
+                frame.samplesPerLine = readUint16();
+                frame.components = {};
+                frame.componentsOrder = [];
+                var pixelsInFrame = frame.scanLines * frame.samplesPerLine;
+                if (pixelsInFrame > maxResolutionInPixels) {
+                  var exceededAmount = Math.ceil((pixelsInFrame - maxResolutionInPixels) / 1e6);
+                  throw new Error(`maxResolutionInMP limit exceeded by ${exceededAmount}MP`);
+                }
+                var componentsCount = data[offset++], componentId;
+                var maxH = 0, maxV = 0;
+                for (i = 0; i < componentsCount; i++) {
+                  componentId = data[offset];
+                  var h = data[offset + 1] >> 4;
+                  var v = data[offset + 1] & 15;
+                  var qId = data[offset + 2];
+                  if (h <= 0 || v <= 0) {
+                    throw new Error("Invalid sampling factor, expected values above 0");
+                  }
+                  frame.componentsOrder.push(componentId);
+                  frame.components[componentId] = {
+                    h,
+                    v,
+                    quantizationIdx: qId
+                  };
+                  offset += 3;
+                }
+                prepareComponents(frame);
+                frames.push(frame);
+                break;
+              case 65476:
+                var huffmanLength = readUint16();
+                for (i = 2; i < huffmanLength; ) {
+                  var huffmanTableSpec = data[offset++];
+                  var codeLengths = new Uint8Array(16);
+                  var codeLengthSum = 0;
+                  for (j = 0; j < 16; j++, offset++) {
+                    codeLengthSum += codeLengths[j] = data[offset];
+                  }
+                  requestMemoryAllocation(16 + codeLengthSum);
+                  var huffmanValues = new Uint8Array(codeLengthSum);
+                  for (j = 0; j < codeLengthSum; j++, offset++)
+                    huffmanValues[j] = data[offset];
+                  i += 17 + codeLengthSum;
+                  (huffmanTableSpec >> 4 === 0 ? huffmanTablesDC : huffmanTablesAC)[huffmanTableSpec & 15] = buildHuffmanTable(codeLengths, huffmanValues);
+                }
+                break;
+              case 65501:
+                readUint16();
+                resetInterval = readUint16();
+                break;
+              case 65500:
+                readUint16();
+                readUint16();
+                break;
+              case 65498:
+                var scanLength = readUint16();
+                var selectorsCount = data[offset++];
+                var components = [], component;
+                for (i = 0; i < selectorsCount; i++) {
+                  component = frame.components[data[offset++]];
+                  var tableSpec = data[offset++];
+                  component.huffmanTableDC = huffmanTablesDC[tableSpec >> 4];
+                  component.huffmanTableAC = huffmanTablesAC[tableSpec & 15];
+                  components.push(component);
+                }
+                var spectralStart = data[offset++];
+                var spectralEnd = data[offset++];
+                var successiveApproximation = data[offset++];
+                var processed = decodeScan(
+                  data,
+                  offset,
+                  frame,
+                  components,
+                  resetInterval,
+                  spectralStart,
+                  spectralEnd,
+                  successiveApproximation >> 4,
+                  successiveApproximation & 15,
+                  this.opts
+                );
+                offset += processed;
+                break;
+              case 65535:
+                if (data[offset] !== 255) {
+                  offset--;
+                }
+                break;
+              default:
+                if (data[offset - 3] == 255 && data[offset - 2] >= 192 && data[offset - 2] <= 254) {
+                  offset -= 3;
+                  break;
+                } else if (fileMarker === 224 || fileMarker == 225) {
+                  if (malformedDataOffset !== -1) {
+                    throw new Error(`first unknown JPEG marker at offset ${malformedDataOffset.toString(16)}, second unknown JPEG marker ${fileMarker.toString(16)} at offset ${(offset - 1).toString(16)}`);
+                  }
+                  malformedDataOffset = offset - 1;
+                  const nextOffset = readUint16();
+                  if (data[offset + nextOffset - 2] === 255) {
+                    offset += nextOffset - 2;
+                    break;
+                  }
+                }
+                throw new Error("unknown JPEG marker " + fileMarker.toString(16));
+            }
+            fileMarker = readUint16();
+          }
+          if (frames.length != 1)
+            throw new Error("only single frame JPEGs supported");
+          for (var i = 0; i < frames.length; i++) {
+            var cp = frames[i].components;
+            for (var j in cp) {
+              cp[j].quantizationTable = quantizationTables[cp[j].quantizationIdx];
+              delete cp[j].quantizationIdx;
+            }
+          }
+          this.width = frame.samplesPerLine;
+          this.height = frame.scanLines;
+          this.jfif = jfif;
+          this.adobe = adobe;
+          this.components = [];
+          for (var i = 0; i < frame.componentsOrder.length; i++) {
+            var component = frame.components[frame.componentsOrder[i]];
+            this.components.push({
+              lines: buildComponentData(frame, component),
+              scaleX: component.h / frame.maxH,
+              scaleY: component.v / frame.maxV
+            });
+          }
+        },
+        getData: function getData(width, height) {
+          var scaleX = this.width / width, scaleY = this.height / height;
+          var component1, component2, component3, component4;
+          var component1Line, component2Line, component3Line, component4Line;
+          var x, y;
+          var offset = 0;
+          var Y, Cb, Cr, K, C, M, Ye, R, G, B;
+          var colorTransform;
+          var dataLength = width * height * this.components.length;
+          requestMemoryAllocation(dataLength);
+          var data = new Uint8Array(dataLength);
+          switch (this.components.length) {
+            case 1:
+              component1 = this.components[0];
+              for (y = 0; y < height; y++) {
+                component1Line = component1.lines[0 | y * component1.scaleY * scaleY];
+                for (x = 0; x < width; x++) {
+                  Y = component1Line[0 | x * component1.scaleX * scaleX];
+                  data[offset++] = Y;
+                }
+              }
+              break;
+            case 2:
+              component1 = this.components[0];
+              component2 = this.components[1];
+              for (y = 0; y < height; y++) {
+                component1Line = component1.lines[0 | y * component1.scaleY * scaleY];
+                component2Line = component2.lines[0 | y * component2.scaleY * scaleY];
+                for (x = 0; x < width; x++) {
+                  Y = component1Line[0 | x * component1.scaleX * scaleX];
+                  data[offset++] = Y;
+                  Y = component2Line[0 | x * component2.scaleX * scaleX];
+                  data[offset++] = Y;
+                }
+              }
+              break;
+            case 3:
+              colorTransform = true;
+              if (this.adobe && this.adobe.transformCode)
+                colorTransform = true;
+              else if (typeof this.opts.colorTransform !== "undefined")
+                colorTransform = !!this.opts.colorTransform;
+              component1 = this.components[0];
+              component2 = this.components[1];
+              component3 = this.components[2];
+              for (y = 0; y < height; y++) {
+                component1Line = component1.lines[0 | y * component1.scaleY * scaleY];
+                component2Line = component2.lines[0 | y * component2.scaleY * scaleY];
+                component3Line = component3.lines[0 | y * component3.scaleY * scaleY];
+                for (x = 0; x < width; x++) {
+                  if (!colorTransform) {
+                    R = component1Line[0 | x * component1.scaleX * scaleX];
+                    G = component2Line[0 | x * component2.scaleX * scaleX];
+                    B = component3Line[0 | x * component3.scaleX * scaleX];
+                  } else {
+                    Y = component1Line[0 | x * component1.scaleX * scaleX];
+                    Cb = component2Line[0 | x * component2.scaleX * scaleX];
+                    Cr = component3Line[0 | x * component3.scaleX * scaleX];
+                    R = clampTo8bit(Y + 1.402 * (Cr - 128));
+                    G = clampTo8bit(Y - 0.3441363 * (Cb - 128) - 0.71413636 * (Cr - 128));
+                    B = clampTo8bit(Y + 1.772 * (Cb - 128));
+                  }
+                  data[offset++] = R;
+                  data[offset++] = G;
+                  data[offset++] = B;
+                }
+              }
+              break;
+            case 4:
+              if (!this.adobe)
+                throw new Error("Unsupported color mode (4 components)");
+              colorTransform = false;
+              if (this.adobe && this.adobe.transformCode)
+                colorTransform = true;
+              else if (typeof this.opts.colorTransform !== "undefined")
+                colorTransform = !!this.opts.colorTransform;
+              component1 = this.components[0];
+              component2 = this.components[1];
+              component3 = this.components[2];
+              component4 = this.components[3];
+              for (y = 0; y < height; y++) {
+                component1Line = component1.lines[0 | y * component1.scaleY * scaleY];
+                component2Line = component2.lines[0 | y * component2.scaleY * scaleY];
+                component3Line = component3.lines[0 | y * component3.scaleY * scaleY];
+                component4Line = component4.lines[0 | y * component4.scaleY * scaleY];
+                for (x = 0; x < width; x++) {
+                  if (!colorTransform) {
+                    C = component1Line[0 | x * component1.scaleX * scaleX];
+                    M = component2Line[0 | x * component2.scaleX * scaleX];
+                    Ye = component3Line[0 | x * component3.scaleX * scaleX];
+                    K = component4Line[0 | x * component4.scaleX * scaleX];
+                  } else {
+                    Y = component1Line[0 | x * component1.scaleX * scaleX];
+                    Cb = component2Line[0 | x * component2.scaleX * scaleX];
+                    Cr = component3Line[0 | x * component3.scaleX * scaleX];
+                    K = component4Line[0 | x * component4.scaleX * scaleX];
+                    C = 255 - clampTo8bit(Y + 1.402 * (Cr - 128));
+                    M = 255 - clampTo8bit(Y - 0.3441363 * (Cb - 128) - 0.71413636 * (Cr - 128));
+                    Ye = 255 - clampTo8bit(Y + 1.772 * (Cb - 128));
+                  }
+                  data[offset++] = 255 - C;
+                  data[offset++] = 255 - M;
+                  data[offset++] = 255 - Ye;
+                  data[offset++] = 255 - K;
+                }
+              }
+              break;
+            default:
+              throw new Error("Unsupported color mode");
+          }
+          return data;
+        },
+        copyToImageData: function copyToImageData(imageData, formatAsRGBA) {
+          var width = imageData.width, height = imageData.height;
+          var imageDataArray = imageData.data;
+          var data = this.getData(width, height);
+          var i = 0, j = 0, x, y;
+          var Y, K, C, M, R, G, B;
+          switch (this.components.length) {
+            case 1:
+              for (y = 0; y < height; y++) {
+                for (x = 0; x < width; x++) {
+                  Y = data[i++];
+                  imageDataArray[j++] = Y;
+                  imageDataArray[j++] = Y;
+                  imageDataArray[j++] = Y;
+                  if (formatAsRGBA) {
+                    imageDataArray[j++] = 255;
+                  }
+                }
+              }
+              break;
+            case 3:
+              for (y = 0; y < height; y++) {
+                for (x = 0; x < width; x++) {
+                  R = data[i++];
+                  G = data[i++];
+                  B = data[i++];
+                  imageDataArray[j++] = R;
+                  imageDataArray[j++] = G;
+                  imageDataArray[j++] = B;
+                  if (formatAsRGBA) {
+                    imageDataArray[j++] = 255;
+                  }
+                }
+              }
+              break;
+            case 4:
+              for (y = 0; y < height; y++) {
+                for (x = 0; x < width; x++) {
+                  C = data[i++];
+                  M = data[i++];
+                  Y = data[i++];
+                  K = data[i++];
+                  R = 255 - clampTo8bit(C * (1 - K / 255) + K);
+                  G = 255 - clampTo8bit(M * (1 - K / 255) + K);
+                  B = 255 - clampTo8bit(Y * (1 - K / 255) + K);
+                  imageDataArray[j++] = R;
+                  imageDataArray[j++] = G;
+                  imageDataArray[j++] = B;
+                  if (formatAsRGBA) {
+                    imageDataArray[j++] = 255;
+                  }
+                }
+              }
+              break;
+            default:
+              throw new Error("Unsupported color mode");
+          }
+        }
+      };
+      var totalBytesAllocated = 0;
+      var maxMemoryUsageBytes = 0;
+      function requestMemoryAllocation(increaseAmount = 0) {
+        var totalMemoryImpactBytes = totalBytesAllocated + increaseAmount;
+        if (totalMemoryImpactBytes > maxMemoryUsageBytes) {
+          var exceededAmount = Math.ceil((totalMemoryImpactBytes - maxMemoryUsageBytes) / 1024 / 1024);
+          throw new Error(`maxMemoryUsageInMB limit exceeded by at least ${exceededAmount}MB`);
+        }
+        totalBytesAllocated = totalMemoryImpactBytes;
+      }
+      constructor.resetMaxMemoryUsage = function(maxMemoryUsageBytes_) {
+        totalBytesAllocated = 0;
+        maxMemoryUsageBytes = maxMemoryUsageBytes_;
+      };
+      constructor.getBytesAllocated = function() {
+        return totalBytesAllocated;
+      };
+      constructor.requestMemoryAllocation = requestMemoryAllocation;
+      return constructor;
+    })();
+    if (typeof module !== "undefined") {
+      module.exports = decode2;
+    } else if (typeof window !== "undefined") {
+      window["jpeg-js"] = window["jpeg-js"] || {};
+      window["jpeg-js"].decode = decode2;
+    }
+    function decode2(jpegData, userOpts = {}) {
+      var defaultOpts2 = {
+        // "undefined" means "Choose whether to transform colors based on the image’s color model."
+        colorTransform: void 0,
+        useTArray: false,
+        formatAsRGBA: true,
+        tolerantDecoding: true,
+        maxResolutionInMP: 100,
+        // Don't decode more than 100 megapixels
+        maxMemoryUsageInMB: 512
+        // Don't decode if memory footprint is more than 512MB
+      };
+      var opts = { ...defaultOpts2, ...userOpts };
+      var arr = new Uint8Array(jpegData);
+      var decoder = new JpegImage();
+      decoder.opts = opts;
+      JpegImage.resetMaxMemoryUsage(opts.maxMemoryUsageInMB * 1024 * 1024);
+      decoder.parse(arr);
+      var channels = opts.formatAsRGBA ? 4 : 3;
+      var bytesNeeded = decoder.width * decoder.height * channels;
+      try {
+        JpegImage.requestMemoryAllocation(bytesNeeded);
+        var image2 = {
+          width: decoder.width,
+          height: decoder.height,
+          exifBuffer: decoder.exifBuffer,
+          data: opts.useTArray ? new Uint8Array(bytesNeeded) : Buffer.alloc(bytesNeeded)
+        };
+        if (decoder.comments.length > 0) {
+          image2["comments"] = decoder.comments;
+        }
+      } catch (err) {
+        if (err instanceof RangeError) {
+          throw new Error("Could not allocate enough memory for the image. Required: " + bytesNeeded);
+        }
+        if (err instanceof ReferenceError) {
+          if (err.message === "Buffer is not defined") {
+            throw new Error("Buffer is not globally defined in this environment. Consider setting useTArray to true");
+          }
+        }
+        throw err;
+      }
+      decoder.copyToImageData(image2, opts.formatAsRGBA);
+      return image2;
+    }
+  }
+});
+
+// node_modules/jpeg-js/index.js
+var require_jpeg_js = __commonJS({
+  "node_modules/jpeg-js/index.js"(exports, module) {
+    var encode2 = require_encoder();
+    var decode2 = require_decoder();
+    module.exports = {
+      encode: encode2,
+      decode: decode2
+    };
+  }
+});
+
 // src/m2h.mjs
-import { readFileSync as readFileSync4, writeFileSync as writeFileSync2 } from "node:fs";
+import { readFileSync as readFileSync5, writeFileSync as writeFileSync2 } from "node:fs";
 import { resolve as resolve2 } from "node:path";
 
 // src/migrate.mjs
@@ -187579,24 +189730,24 @@ var MEDIA_KEYS_INT = [
 function getMediaElements(where) {
   return getElementsByTagName("media:content", where).map((elem) => {
     const { attribs } = elem;
-    const media = {
+    const media2 = {
       medium: attribs["medium"],
       isDefault: !!attribs["isDefault"]
     };
     for (const attrib of MEDIA_KEYS_STRING) {
       if (attribs[attrib]) {
-        media[attrib] = attribs[attrib];
+        media2[attrib] = attribs[attrib];
       }
     }
     for (const attrib of MEDIA_KEYS_INT) {
       if (attribs[attrib]) {
-        media[attrib] = parseInt(attribs[attrib], 10);
+        media2[attrib] = parseInt(attribs[attrib], 10);
       }
     }
     if (attribs["expression"]) {
-      media.expression = attribs["expression"];
+      media2.expression = attribs["expression"];
     }
-    return media;
+    return media2;
   });
 }
 function getOneElement(tagName19, node) {
@@ -189826,24 +191977,24 @@ var MEDIA_KEYS_INT2 = [
 function getMediaElements2(where) {
   return getElementsByTagName2("media:content", where).map((element) => {
     const { attribs } = element;
-    const media = {
+    const media2 = {
       medium: attribs["medium"],
       isDefault: !!attribs["isDefault"]
     };
     for (const attrib of MEDIA_KEYS_STRING2) {
       if (attribs[attrib]) {
-        media[attrib] = attribs[attrib];
+        media2[attrib] = attribs[attrib];
       }
     }
     for (const attrib of MEDIA_KEYS_INT2) {
       if (attribs[attrib]) {
-        media[attrib] = Number.parseInt(attribs[attrib], 10);
+        media2[attrib] = Number.parseInt(attribs[attrib], 10);
       }
     }
     if (attribs["expression"]) {
-      media.expression = attribs["expression"];
+      media2.expression = attribs["expression"];
     }
-    return media;
+    return media2;
   });
 }
 function getOneElement2(tagName19, node) {
@@ -204295,10 +206446,10 @@ var $f08dd41ef10b694c$export$2e2bcd8739ae039 = class {
   (0, $e71565f2ce09cb6b$export$69a3209f1a06c04d)
 ], $f08dd41ef10b694c$export$2e2bcd8739ae039.prototype, "codePointsForGlyph", null);
 var $0bba3a9db57637f3$export$2e2bcd8739ae039 = class {
-  process(glyphs, positions) {
-    for (let glyphIndex = 0; glyphIndex < glyphs.length - 1; glyphIndex++) {
-      let left = glyphs[glyphIndex].id;
-      let right = glyphs[glyphIndex + 1].id;
+  process(glyphs2, positions) {
+    for (let glyphIndex = 0; glyphIndex < glyphs2.length - 1; glyphIndex++) {
+      let left = glyphs2[glyphIndex].id;
+      let right = glyphs2[glyphIndex + 1].id;
       positions[glyphIndex].xAdvance += this.getKerning(left, right);
     }
   }
@@ -204350,22 +206501,22 @@ var $0bba3a9db57637f3$export$2e2bcd8739ae039 = class {
   }
 };
 var $0a4bdfeb6dfd6f5e$export$2e2bcd8739ae039 = class {
-  positionGlyphs(glyphs, positions) {
+  positionGlyphs(glyphs2, positions) {
     let clusterStart = 0;
     let clusterEnd = 0;
-    for (let index2 = 0; index2 < glyphs.length; index2++) {
-      let glyph = glyphs[index2];
+    for (let index2 = 0; index2 < glyphs2.length; index2++) {
+      let glyph = glyphs2[index2];
       if (glyph.isMark) clusterEnd = index2;
       else {
-        if (clusterStart !== clusterEnd) this.positionCluster(glyphs, positions, clusterStart, clusterEnd);
+        if (clusterStart !== clusterEnd) this.positionCluster(glyphs2, positions, clusterStart, clusterEnd);
         clusterStart = clusterEnd = index2;
       }
     }
-    if (clusterStart !== clusterEnd) this.positionCluster(glyphs, positions, clusterStart, clusterEnd);
+    if (clusterStart !== clusterEnd) this.positionCluster(glyphs2, positions, clusterStart, clusterEnd);
     return positions;
   }
-  positionCluster(glyphs, positions, clusterStart, clusterEnd) {
-    let base = glyphs[clusterStart];
+  positionCluster(glyphs2, positions, clusterStart, clusterEnd) {
+    let base = glyphs2[clusterStart];
     let baseBox = base.cbox.copy();
     if (base.codePoints.length > 1)
       baseBox.minX += (base.codePoints.length - 1) * baseBox.width / base.codePoints.length;
@@ -204373,7 +206524,7 @@ var $0a4bdfeb6dfd6f5e$export$2e2bcd8739ae039 = class {
     let yOffset = 0;
     let yGap = this.font.unitsPerEm / 16;
     for (let index2 = clusterStart + 1; index2 <= clusterEnd; index2++) {
-      let mark = glyphs[index2];
+      let mark = glyphs2[index2];
       let markBox = mark.cbox;
       let position = positions[index2];
       let combiningClass = this.getCombiningClass(mark.codePoints[0]);
@@ -204817,8 +206968,8 @@ var $be07b3e97a42687a$export$2e2bcd8739ae039 = class {
     }
     return bbox;
   }
-  constructor(glyphs, features, script, language, direction) {
-    this.glyphs = glyphs;
+  constructor(glyphs2, features, script, language, direction) {
+    this.glyphs = glyphs2;
     this.positions = null;
     this.script = script;
     this.language = language || null;
@@ -205409,17 +207560,17 @@ var $50c7aac9316f2948$var$OUT_OF_BOUNDS_CLASS = 1;
 var $50c7aac9316f2948$var$DELETED_GLYPH_CLASS = 2;
 var $50c7aac9316f2948$var$DONT_ADVANCE = 16384;
 var $50c7aac9316f2948$export$2e2bcd8739ae039 = class {
-  process(glyphs, reverse, processEntry) {
+  process(glyphs2, reverse, processEntry) {
     let currentState = $50c7aac9316f2948$var$START_OF_TEXT_STATE;
-    let index2 = reverse ? glyphs.length - 1 : 0;
+    let index2 = reverse ? glyphs2.length - 1 : 0;
     let dir = reverse ? -1 : 1;
-    while (dir === 1 && index2 <= glyphs.length || dir === -1 && index2 >= -1) {
+    while (dir === 1 && index2 <= glyphs2.length || dir === -1 && index2 >= -1) {
       let glyph = null;
       let classCode = $50c7aac9316f2948$var$OUT_OF_BOUNDS_CLASS;
       let shouldAdvance = true;
-      if (index2 === glyphs.length || index2 === -1) classCode = $50c7aac9316f2948$var$END_OF_TEXT_CLASS;
+      if (index2 === glyphs2.length || index2 === -1) classCode = $50c7aac9316f2948$var$END_OF_TEXT_CLASS;
       else {
-        glyph = glyphs[index2];
+        glyph = glyphs2[index2];
         if (glyph.id === 65535) classCode = $50c7aac9316f2948$var$DELETED_GLYPH_CLASS;
         else {
           classCode = this.lookupTable.lookup(glyph.id);
@@ -205436,7 +207587,7 @@ var $50c7aac9316f2948$export$2e2bcd8739ae039 = class {
       currentState = entry.newState;
       if (shouldAdvance) index2 += dir;
     }
-    return glyphs;
+    return glyphs2;
   }
   /**
   * Performs a depth-first traversal of the glyph strings
@@ -205479,7 +207630,7 @@ var $55f71433a605c87d$var$MARKED_INSERT_COUNT = 31;
 var $55f71433a605c87d$export$2e2bcd8739ae039 = class {
   // Processes an array of glyphs and applies the specified features
   // Features should be in the form of {featureType:{featureSetting:boolean}}
-  process(glyphs, features = {}) {
+  process(glyphs2, features = {}) {
     for (let chain of this.morx.chains) {
       let flags = chain.defaultFlags;
       for (let feature of chain.features) {
@@ -205494,18 +207645,18 @@ var $55f71433a605c87d$export$2e2bcd8739ae039 = class {
           }
         }
       }
-      for (let subtable of chain.subtables) if (subtable.subFeatureFlags & flags) this.processSubtable(subtable, glyphs);
+      for (let subtable of chain.subtables) if (subtable.subFeatureFlags & flags) this.processSubtable(subtable, glyphs2);
     }
-    let index2 = glyphs.length - 1;
+    let index2 = glyphs2.length - 1;
     while (index2 >= 0) {
-      if (glyphs[index2].id === 65535) glyphs.splice(index2, 1);
+      if (glyphs2[index2].id === 65535) glyphs2.splice(index2, 1);
       index2--;
     }
-    return glyphs;
+    return glyphs2;
   }
-  processSubtable(subtable, glyphs) {
+  processSubtable(subtable, glyphs2) {
     this.subtable = subtable;
-    this.glyphs = glyphs;
+    this.glyphs = glyphs2;
     if (this.subtable.type === 4) {
       this.processNoncontextualSubstitutions(this.subtable, this.glyphs);
       return;
@@ -205594,13 +207745,13 @@ var $55f71433a605c87d$export$2e2bcd8739ae039 = class {
       this.ligatureStack.push(...ligatureGlyphs);
     }
   }
-  processNoncontextualSubstitutions(subtable, glyphs, index2) {
+  processNoncontextualSubstitutions(subtable, glyphs2, index2) {
     let lookupTable = new (0, $ff5ce077dae0f144$export$2e2bcd8739ae039)(subtable.table.lookupTable);
-    for (index2 = 0; index2 < glyphs.length; index2++) {
-      let glyph = glyphs[index2];
+    for (index2 = 0; index2 < glyphs2.length; index2++) {
+      let glyph = glyphs2[index2];
       if (glyph.id !== 65535) {
         let gid = lookupTable.lookup(glyph.id);
-        if (gid) glyphs[index2] = this.font.getGlyph(gid, glyph.codePoints);
+        if (gid) glyphs2[index2] = this.font.getGlyph(gid, glyph.codePoints);
       }
     }
   }
@@ -205658,20 +207809,20 @@ var $55f71433a605c87d$export$2e2bcd8739ae039 = class {
     this.glyphs = [];
     stateMachine.traverse({
       enter: (glyph, entry) => {
-        let glyphs = this.glyphs;
+        let glyphs2 = this.glyphs;
         stack.push({
-          glyphs: glyphs.slice(),
+          glyphs: glyphs2.slice(),
           ligatureStack: this.ligatureStack.slice()
         });
         let g = this.font.getGlyph(glyph);
         input.push(g);
-        glyphs.push(input[input.length - 1]);
-        process2(glyphs[glyphs.length - 1], entry, glyphs.length - 1);
+        glyphs2.push(input[input.length - 1]);
+        process2(glyphs2[glyphs2.length - 1], entry, glyphs2.length - 1);
         let count = 0;
         let found = 0;
-        for (let i = 0; i < glyphs.length && count <= 1; i++) if (glyphs[i].id !== 65535) {
+        for (let i = 0; i < glyphs2.length && count <= 1; i++) if (glyphs2[i].id !== 65535) {
           count++;
-          found = glyphs[i].id;
+          found = glyphs2[i].id;
         }
         if (count === 1) {
           let result = input.map((g2) => g2.id);
@@ -205702,21 +207853,21 @@ var $55f71433a605c87d$export$2e2bcd8739ae039 = class {
 (0, __decorate)([
   (0, $e71565f2ce09cb6b$export$69a3209f1a06c04d)
 ], $55f71433a605c87d$export$2e2bcd8739ae039.prototype, "getStateMachine", null);
-function $55f71433a605c87d$var$swap(glyphs, rangeA, rangeB, reverseA = false, reverseB = false) {
-  let end = glyphs.splice(rangeB[0] - (rangeB[1] - 1), rangeB[1]);
+function $55f71433a605c87d$var$swap(glyphs2, rangeA, rangeB, reverseA = false, reverseB = false) {
+  let end = glyphs2.splice(rangeB[0] - (rangeB[1] - 1), rangeB[1]);
   if (reverseB) end.reverse();
-  let start = glyphs.splice(rangeA[0], rangeA[1], ...end);
+  let start = glyphs2.splice(rangeA[0], rangeA[1], ...end);
   if (reverseA) start.reverse();
-  glyphs.splice(rangeB[0] - (rangeA[1] - 1), 0, ...start);
-  return glyphs;
+  glyphs2.splice(rangeB[0] - (rangeA[1] - 1), 0, ...start);
+  return glyphs2;
 }
-function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph) {
+function $55f71433a605c87d$var$reorderGlyphs(glyphs2, verb, firstGlyph, lastGlyph) {
   let length = lastGlyph - firstGlyph + 1;
   switch (verb) {
     case 0:
-      return glyphs;
+      return glyphs2;
     case 1:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         1
       ], [
@@ -205724,7 +207875,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         0
       ]);
     case 2:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         0
       ], [
@@ -205732,7 +207883,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         1
       ]);
     case 3:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         1
       ], [
@@ -205740,7 +207891,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         1
       ]);
     case 4:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         2
       ], [
@@ -205748,7 +207899,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         0
       ]);
     case 5:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         2
       ], [
@@ -205756,7 +207907,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         0
       ], true, false);
     case 6:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         0
       ], [
@@ -205764,7 +207915,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         2
       ]);
     case 7:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         0
       ], [
@@ -205772,7 +207923,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         2
       ], false, true);
     case 8:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         1
       ], [
@@ -205780,7 +207931,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         2
       ]);
     case 9:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         1
       ], [
@@ -205788,7 +207939,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         2
       ], false, true);
     case 10:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         2
       ], [
@@ -205796,7 +207947,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         1
       ]);
     case 11:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         2
       ], [
@@ -205804,7 +207955,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         1
       ], true, false);
     case 12:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         2
       ], [
@@ -205812,7 +207963,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         2
       ]);
     case 13:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         2
       ], [
@@ -205820,7 +207971,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         2
       ], true, false);
     case 14:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         2
       ], [
@@ -205828,7 +207979,7 @@ function $55f71433a605c87d$var$reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph
         2
       ], false, true);
     case 15:
-      return $55f71433a605c87d$var$swap(glyphs, [
+      return $55f71433a605c87d$var$swap(glyphs2, [
         firstGlyph,
         2
       ], [
@@ -205850,14 +208001,14 @@ var $ba6dd74203be8728$export$2e2bcd8739ae039 = class {
   stringsForGlyph(gid) {
     let glyphStrings = this.morxProcessor.generateInputs(gid);
     let result = /* @__PURE__ */ new Set();
-    for (let glyphs of glyphStrings) this._addStrings(glyphs, 0, result, "");
+    for (let glyphs2 of glyphStrings) this._addStrings(glyphs2, 0, result, "");
     return result;
   }
-  _addStrings(glyphs, index2, strings, string) {
-    let codePoints = this.font._cmapProcessor.codePointsForGlyph(glyphs[index2]);
+  _addStrings(glyphs2, index2, strings, string) {
+    let codePoints = this.font._cmapProcessor.codePointsForGlyph(glyphs2[index2]);
     for (let codePoint of codePoints) {
       let s = string + String.fromCodePoint(codePoint);
-      if (index2 < glyphs.length - 1) this._addStrings(glyphs, index2 + 1, strings, s);
+      if (index2 < glyphs2.length - 1) this._addStrings(glyphs2, index2 + 1, strings, s);
       else strings.add(s);
     }
   }
@@ -205920,17 +208071,17 @@ var $94d7a73bd2edfc9a$export$2e2bcd8739ae039 = class {
   /**
   * Assigns the global features to the given glyphs
   */
-  assignGlobalFeatures(glyphs) {
-    for (let glyph of glyphs) for (let feature in this.globalFeatures) glyph.features[feature] = true;
+  assignGlobalFeatures(glyphs2) {
+    for (let glyph of glyphs2) for (let feature in this.globalFeatures) glyph.features[feature] = true;
   }
   /**
   * Executes the planned stages using the given OTProcessor
   */
-  process(processor, glyphs, positions) {
+  process(processor, glyphs2, positions) {
     for (let stage of this.stages) {
       if (typeof stage === "function") {
-        if (!positions) stage(this.font, glyphs, this);
-      } else if (stage.length > 0) processor.applyFeatures(stage, glyphs, positions);
+        if (!positions) stage(this.font, glyphs2, this);
+      } else if (stage.length > 0) processor.applyFeatures(stage, glyphs2, positions);
     }
   }
   constructor(font, script, direction) {
@@ -205976,12 +208127,12 @@ var $649970d87335b30f$var$DIRECTIONAL_FEATURES = {
   ]
 };
 var $649970d87335b30f$export$2e2bcd8739ae039 = class {
-  static plan(plan, glyphs, features) {
+  static plan(plan, glyphs2, features) {
     this.planPreprocessing(plan);
     this.planFeatures(plan);
     this.planPostprocessing(plan, features);
-    plan.assignGlobalFeatures(glyphs);
-    this.assignFeatures(plan, glyphs);
+    plan.assignGlobalFeatures(glyphs2);
+    this.assignFeatures(plan, glyphs2);
   }
   static planPreprocessing(plan) {
     plan.add({
@@ -206001,20 +208152,20 @@ var $649970d87335b30f$export$2e2bcd8739ae039 = class {
     ]);
     plan.setFeatureOverrides(userFeatures);
   }
-  static assignFeatures(plan, glyphs) {
-    for (let i = 0; i < glyphs.length; i++) {
-      let glyph = glyphs[i];
+  static assignFeatures(plan, glyphs2) {
+    for (let i = 0; i < glyphs2.length; i++) {
+      let glyph = glyphs2[i];
       if (glyph.codePoints[0] === 8260) {
         let start = i;
         let end = i + 1;
-        while (start > 0 && (0, $747425b437e121da$export$727d9dbc4fbb948f)(glyphs[start - 1].codePoints[0])) {
-          glyphs[start - 1].features.numr = true;
-          glyphs[start - 1].features.frac = true;
+        while (start > 0 && (0, $747425b437e121da$export$727d9dbc4fbb948f)(glyphs2[start - 1].codePoints[0])) {
+          glyphs2[start - 1].features.numr = true;
+          glyphs2[start - 1].features.frac = true;
           start--;
         }
-        while (end < glyphs.length && (0, $747425b437e121da$export$727d9dbc4fbb948f)(glyphs[end].codePoints[0])) {
-          glyphs[end].features.dnom = true;
-          glyphs[end].features.frac = true;
+        while (end < glyphs2.length && (0, $747425b437e121da$export$727d9dbc4fbb948f)(glyphs2[end].codePoints[0])) {
+          glyphs2[end].features.dnom = true;
+          glyphs2[end].features.frac = true;
           end++;
         }
         glyph.features.frac = true;
@@ -206298,14 +208449,14 @@ var $764eb544bbe1ccf0$export$2e2bcd8739ae039 = class extends (0, $649970d87335b3
     }
     plan.addStage("mset");
   }
-  static assignFeatures(plan, glyphs) {
-    super.assignFeatures(plan, glyphs);
+  static assignFeatures(plan, glyphs2) {
+    super.assignFeatures(plan, glyphs2);
     let prev = -1;
     let state = 0;
     let actions = [];
-    for (let i = 0; i < glyphs.length; i++) {
+    for (let i = 0; i < glyphs2.length; i++) {
       let curAction, prevAction;
-      var glyph = glyphs[i];
+      var glyph = glyphs2[i];
       let type2 = $764eb544bbe1ccf0$var$getShapingClass(glyph.codePoints[0]);
       if (type2 === $764eb544bbe1ccf0$var$ShapingClasses.Transparent) {
         actions[i] = $764eb544bbe1ccf0$var$NONE;
@@ -206316,9 +208467,9 @@ var $764eb544bbe1ccf0$export$2e2bcd8739ae039 = class extends (0, $649970d87335b3
       actions[i] = curAction;
       prev = i;
     }
-    for (let index2 = 0; index2 < glyphs.length; index2++) {
+    for (let index2 = 0; index2 < glyphs2.length; index2++) {
       let feature;
-      var glyph = glyphs[index2];
+      var glyph = glyphs2[index2];
       if (feature = actions[index2]) glyph.features[feature] = true;
     }
   }
@@ -206374,8 +208525,8 @@ var $85d408632270248b$export$2e2bcd8739ae039 = class {
     while (count--) this.move(dir);
     return this.glyphs[this.index];
   }
-  constructor(glyphs, options) {
-    this.glyphs = glyphs;
+  constructor(glyphs2, options) {
+    this.glyphs = glyphs2;
     this.reset(options);
   }
 };
@@ -206475,18 +208626,18 @@ var $a83b9c36aaa94fd3$export$2e2bcd8739ae039 = class {
       return condition.filterRangeMinValue <= coord && coord <= condition.filterRangeMaxValue;
     });
   }
-  applyFeatures(userFeatures, glyphs, advances) {
+  applyFeatures(userFeatures, glyphs2, advances) {
     let lookups = this.lookupsForFeatures(userFeatures);
-    this.applyLookups(lookups, glyphs, advances);
+    this.applyLookups(lookups, glyphs2, advances);
   }
-  applyLookups(lookups, glyphs, positions) {
-    this.glyphs = glyphs;
+  applyLookups(lookups, glyphs2, positions) {
+    this.glyphs = glyphs2;
     this.positions = positions;
-    this.glyphIterator = new (0, $85d408632270248b$export$2e2bcd8739ae039)(glyphs);
+    this.glyphIterator = new (0, $85d408632270248b$export$2e2bcd8739ae039)(glyphs2);
     for (let { feature, lookup } of lookups) {
       this.currentFeature = feature;
       this.glyphIterator.reset(lookup.flags);
-      while (this.glyphIterator.index < glyphs.length) {
+      while (this.glyphIterator.index < glyphs2.length) {
         if (!(feature in this.glyphIterator.cur.features)) {
           this.glyphIterator.next();
           continue;
@@ -206693,27 +208844,27 @@ var $e1c6bbc8cb416f8c$export$2e2bcd8739ae039 = class extends (0, $649970d87335b3
       "tjmo"
     ], false);
   }
-  static assignFeatures(plan, glyphs) {
+  static assignFeatures(plan, glyphs2) {
     let state = 0;
     let i = 0;
-    while (i < glyphs.length) {
+    while (i < glyphs2.length) {
       let action;
-      let glyph = glyphs[i];
+      let glyph = glyphs2[i];
       let code2 = glyph.codePoints[0];
       let type2 = $e1c6bbc8cb416f8c$var$getType(code2);
       [action, state] = $e1c6bbc8cb416f8c$var$STATE_TABLE[state][type2];
       switch (action) {
         case $e1c6bbc8cb416f8c$var$DECOMPOSE:
-          if (!plan.font.hasGlyphForCodePoint(code2)) i = $e1c6bbc8cb416f8c$var$decompose(glyphs, i, plan.font);
+          if (!plan.font.hasGlyphForCodePoint(code2)) i = $e1c6bbc8cb416f8c$var$decompose(glyphs2, i, plan.font);
           break;
         case $e1c6bbc8cb416f8c$var$COMPOSE:
-          i = $e1c6bbc8cb416f8c$var$compose(glyphs, i, plan.font);
+          i = $e1c6bbc8cb416f8c$var$compose(glyphs2, i, plan.font);
           break;
         case $e1c6bbc8cb416f8c$var$TONE_MARK:
-          $e1c6bbc8cb416f8c$var$reorderToneMark(glyphs, i, plan.font);
+          $e1c6bbc8cb416f8c$var$reorderToneMark(glyphs2, i, plan.font);
           break;
         case $e1c6bbc8cb416f8c$var$INVALID:
-          i = $e1c6bbc8cb416f8c$var$insertDottedCircle(glyphs, i, plan.font);
+          i = $e1c6bbc8cb416f8c$var$insertDottedCircle(glyphs2, i, plan.font);
           break;
       }
       i++;
@@ -206896,8 +209047,8 @@ function $e1c6bbc8cb416f8c$var$getGlyph(font, code2, features) {
     code2
   ], features);
 }
-function $e1c6bbc8cb416f8c$var$decompose(glyphs, i, font) {
-  let glyph = glyphs[i];
+function $e1c6bbc8cb416f8c$var$decompose(glyphs2, i, font) {
+  let glyph = glyphs2[i];
   let code2 = glyph.codePoints[0];
   let s = code2 - $e1c6bbc8cb416f8c$var$HANGUL_BASE;
   let t = $e1c6bbc8cb416f8c$var$T_BASE + s % $e1c6bbc8cb416f8c$var$T_COUNT;
@@ -206918,14 +209069,14 @@ function $e1c6bbc8cb416f8c$var$decompose(glyphs, i, font) {
     tjmo.features.tjmo = true;
     insert2.push(tjmo);
   }
-  glyphs.splice(i, 1, ...insert2);
+  glyphs2.splice(i, 1, ...insert2);
   return i + insert2.length - 1;
 }
-function $e1c6bbc8cb416f8c$var$compose(glyphs, i, font) {
-  let glyph = glyphs[i];
-  let code2 = glyphs[i].codePoints[0];
+function $e1c6bbc8cb416f8c$var$compose(glyphs2, i, font) {
+  let glyph = glyphs2[i];
+  let code2 = glyphs2[i].codePoints[0];
   let type2 = $e1c6bbc8cb416f8c$var$getType(code2);
-  let prev = glyphs[i - 1].codePoints[0];
+  let prev = glyphs2[i - 1].codePoints[0];
   let prevType = $e1c6bbc8cb416f8c$var$getType(prev);
   let lv, ljmo, vjmo, tjmo;
   if (prevType === $e1c6bbc8cb416f8c$var$LV && type2 === $e1c6bbc8cb416f8c$var$T) {
@@ -206933,11 +209084,11 @@ function $e1c6bbc8cb416f8c$var$compose(glyphs, i, font) {
     tjmo = glyph;
   } else {
     if (type2 === $e1c6bbc8cb416f8c$var$V) {
-      ljmo = glyphs[i - 1];
+      ljmo = glyphs2[i - 1];
       vjmo = glyph;
     } else {
-      ljmo = glyphs[i - 2];
-      vjmo = glyphs[i - 1];
+      ljmo = glyphs2[i - 2];
+      vjmo = glyphs2[i - 1];
       tjmo = glyph;
     }
     let l = ljmo.codePoints[0];
@@ -206949,7 +209100,7 @@ function $e1c6bbc8cb416f8c$var$compose(glyphs, i, font) {
     let s = lv + (t - $e1c6bbc8cb416f8c$var$T_BASE);
     if (font.hasGlyphForCodePoint(s)) {
       let del = prevType === $e1c6bbc8cb416f8c$var$V ? 3 : 2;
-      glyphs.splice(i - del + 1, del, $e1c6bbc8cb416f8c$var$getGlyph(font, s, glyph.features));
+      glyphs2.splice(i - del + 1, del, $e1c6bbc8cb416f8c$var$getGlyph(font, s, glyph.features));
       return i - del + 1;
     }
   }
@@ -206957,7 +209108,7 @@ function $e1c6bbc8cb416f8c$var$compose(glyphs, i, font) {
   if (vjmo) vjmo.features.vjmo = true;
   if (tjmo) tjmo.features.tjmo = true;
   if (prevType === $e1c6bbc8cb416f8c$var$LV) {
-    $e1c6bbc8cb416f8c$var$decompose(glyphs, i - 1, font);
+    $e1c6bbc8cb416f8c$var$decompose(glyphs2, i - 1, font);
     return i + 1;
   }
   return i;
@@ -206973,22 +209124,22 @@ function $e1c6bbc8cb416f8c$var$getLength(code2) {
       return 3;
   }
 }
-function $e1c6bbc8cb416f8c$var$reorderToneMark(glyphs, i, font) {
-  let glyph = glyphs[i];
-  let code2 = glyphs[i].codePoints[0];
+function $e1c6bbc8cb416f8c$var$reorderToneMark(glyphs2, i, font) {
+  let glyph = glyphs2[i];
+  let code2 = glyphs2[i].codePoints[0];
   if (font.glyphForCodePoint(code2).advanceWidth === 0) return;
-  let prev = glyphs[i - 1].codePoints[0];
+  let prev = glyphs2[i - 1].codePoints[0];
   let len = $e1c6bbc8cb416f8c$var$getLength(prev);
-  glyphs.splice(i, 1);
-  return glyphs.splice(i - len, 0, glyph);
+  glyphs2.splice(i, 1);
+  return glyphs2.splice(i - len, 0, glyph);
 }
-function $e1c6bbc8cb416f8c$var$insertDottedCircle(glyphs, i, font) {
-  let glyph = glyphs[i];
-  let code2 = glyphs[i].codePoints[0];
+function $e1c6bbc8cb416f8c$var$insertDottedCircle(glyphs2, i, font) {
+  let glyph = glyphs2[i];
+  let code2 = glyphs2[i].codePoints[0];
   if (font.hasGlyphForCodePoint($e1c6bbc8cb416f8c$var$DOTTED_CIRCLE)) {
     let dottedCircle = $e1c6bbc8cb416f8c$var$getGlyph(font, $e1c6bbc8cb416f8c$var$DOTTED_CIRCLE, glyph.features);
     let idx = font.glyphForCodePoint(code2).advanceWidth === 0 ? i : i + 1;
-    glyphs.splice(idx, 0, dottedCircle);
+    glyphs2.splice(idx, 0, dottedCircle);
     i++;
   }
   return i;
@@ -207207,18 +209358,18 @@ var $7826f90f6f0cecc9$export$2e2bcd8739ae039 = class extends (0, $649970d87335b3
     plan.indicConfig = (0, $90a9d3398ee54fe5$export$e99d119da76a0fc5)[plan.unicodeScript] || (0, $90a9d3398ee54fe5$export$e99d119da76a0fc5).Default;
     plan.isOldSpec = plan.indicConfig.hasOldSpec && plan.script[plan.script.length - 1] !== "2";
   }
-  static assignFeatures(plan, glyphs) {
-    for (let i = glyphs.length - 1; i >= 0; i--) {
-      let codepoint = glyphs[i].codePoints[0];
+  static assignFeatures(plan, glyphs2) {
+    for (let i = glyphs2.length - 1; i >= 0; i--) {
+      let codepoint = glyphs2[i].codePoints[0];
       let d = (0, $90a9d3398ee54fe5$export$f647c9cfdd77d95a)[codepoint] || $7826f90f6f0cecc9$var$decompositions[codepoint];
       if (d) {
         let decomposed = d.map((c) => {
           let g = plan.font.glyphForCodePoint(c);
           return new (0, $10e7b257e1a9a756$export$2e2bcd8739ae039)(plan.font, g.id, [
             c
-          ], glyphs[i].features);
+          ], glyphs2[i].features);
         });
-        glyphs.splice(i, 1, ...decomposed);
+        glyphs2.splice(i, 1, ...decomposed);
       }
     }
   }
@@ -207238,21 +209389,21 @@ var $7826f90f6f0cecc9$var$IndicInfo = class {
     this.syllable = syllable;
   }
 };
-function $7826f90f6f0cecc9$var$setupSyllables(font, glyphs) {
+function $7826f90f6f0cecc9$var$setupSyllables(font, glyphs2) {
   let syllable = 0;
   let last = 0;
-  for (let [start, end, tags] of $7826f90f6f0cecc9$var$stateMachine.match(glyphs.map($7826f90f6f0cecc9$var$indicCategory))) {
+  for (let [start, end, tags] of $7826f90f6f0cecc9$var$stateMachine.match(glyphs2.map($7826f90f6f0cecc9$var$indicCategory))) {
     if (start > last) {
       ++syllable;
-      for (let i = last; i < start; i++) glyphs[i].shaperInfo = new $7826f90f6f0cecc9$var$IndicInfo((0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).X, (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).End, "non_indic_cluster", syllable);
+      for (let i = last; i < start; i++) glyphs2[i].shaperInfo = new $7826f90f6f0cecc9$var$IndicInfo((0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).X, (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).End, "non_indic_cluster", syllable);
     }
     ++syllable;
-    for (let i = start; i <= end; i++) glyphs[i].shaperInfo = new $7826f90f6f0cecc9$var$IndicInfo(1 << $7826f90f6f0cecc9$var$indicCategory(glyphs[i]), $7826f90f6f0cecc9$var$indicPosition(glyphs[i]), tags[0], syllable);
+    for (let i = start; i <= end; i++) glyphs2[i].shaperInfo = new $7826f90f6f0cecc9$var$IndicInfo(1 << $7826f90f6f0cecc9$var$indicCategory(glyphs2[i]), $7826f90f6f0cecc9$var$indicPosition(glyphs2[i]), tags[0], syllable);
     last = end + 1;
   }
-  if (last < glyphs.length) {
+  if (last < glyphs2.length) {
     ++syllable;
-    for (let i = last; i < glyphs.length; i++) glyphs[i].shaperInfo = new $7826f90f6f0cecc9$var$IndicInfo((0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).X, (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).End, "non_indic_cluster", syllable);
+    for (let i = last; i < glyphs2.length; i++) glyphs2[i].shaperInfo = new $7826f90f6f0cecc9$var$IndicInfo((0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).X, (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).End, "non_indic_cluster", syllable);
   }
 }
 function $7826f90f6f0cecc9$var$isConsonant(glyph) {
@@ -207264,28 +209415,28 @@ function $7826f90f6f0cecc9$var$isJoiner(glyph) {
 function $7826f90f6f0cecc9$var$isHalantOrCoeng(glyph) {
   return glyph.shaperInfo.category & (0, $90a9d3398ee54fe5$export$ca9599b2a300afc);
 }
-function $7826f90f6f0cecc9$var$wouldSubstitute(glyphs, feature) {
-  for (let glyph of glyphs) glyph.features = {
+function $7826f90f6f0cecc9$var$wouldSubstitute(glyphs2, feature) {
+  for (let glyph of glyphs2) glyph.features = {
     [feature]: true
   };
-  let GSUB = glyphs[0]._font._layoutEngine.engine.GSUBProcessor;
+  let GSUB = glyphs2[0]._font._layoutEngine.engine.GSUBProcessor;
   GSUB.applyFeatures([
     feature
-  ], glyphs);
-  return glyphs.length === 1;
+  ], glyphs2);
+  return glyphs2.length === 1;
 }
 function $7826f90f6f0cecc9$var$consonantPosition(font, consonant, virama) {
-  let glyphs = [
+  let glyphs2 = [
     virama,
     consonant,
     virama
   ];
-  if ($7826f90f6f0cecc9$var$wouldSubstitute(glyphs.slice(0, 2), "blwf") || $7826f90f6f0cecc9$var$wouldSubstitute(glyphs.slice(1, 3), "blwf")) return (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Below_C;
-  else if ($7826f90f6f0cecc9$var$wouldSubstitute(glyphs.slice(0, 2), "pstf") || $7826f90f6f0cecc9$var$wouldSubstitute(glyphs.slice(1, 3), "pstf")) return (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Post_C;
-  else if ($7826f90f6f0cecc9$var$wouldSubstitute(glyphs.slice(0, 2), "pref") || $7826f90f6f0cecc9$var$wouldSubstitute(glyphs.slice(1, 3), "pref")) return (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Post_C;
+  if ($7826f90f6f0cecc9$var$wouldSubstitute(glyphs2.slice(0, 2), "blwf") || $7826f90f6f0cecc9$var$wouldSubstitute(glyphs2.slice(1, 3), "blwf")) return (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Below_C;
+  else if ($7826f90f6f0cecc9$var$wouldSubstitute(glyphs2.slice(0, 2), "pstf") || $7826f90f6f0cecc9$var$wouldSubstitute(glyphs2.slice(1, 3), "pstf")) return (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Post_C;
+  else if ($7826f90f6f0cecc9$var$wouldSubstitute(glyphs2.slice(0, 2), "pref") || $7826f90f6f0cecc9$var$wouldSubstitute(glyphs2.slice(1, 3), "pref")) return (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Post_C;
   return (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C;
 }
-function $7826f90f6f0cecc9$var$initialReordering(font, glyphs, plan) {
+function $7826f90f6f0cecc9$var$initialReordering(font, glyphs2, plan) {
   let indicConfig = plan.indicConfig;
   let features = font._layoutEngine.engine.GSUBProcessor.features;
   let dottedCircle = font.glyphForCodePoint(9676).id;
@@ -207294,39 +209445,39 @@ function $7826f90f6f0cecc9$var$initialReordering(font, glyphs, plan) {
     let info = new (0, $10e7b257e1a9a756$export$2e2bcd8739ae039)(font, virama, [
       indicConfig.virama
     ]);
-    for (let i = 0; i < glyphs.length; i++) if (glyphs[i].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C) glyphs[i].shaperInfo.position = $7826f90f6f0cecc9$var$consonantPosition(font, glyphs[i].copy(), info);
+    for (let i = 0; i < glyphs2.length; i++) if (glyphs2[i].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C) glyphs2[i].shaperInfo.position = $7826f90f6f0cecc9$var$consonantPosition(font, glyphs2[i].copy(), info);
   }
-  for (let start = 0, end = $7826f90f6f0cecc9$var$nextSyllable(glyphs, 0); start < glyphs.length; start = end, end = $7826f90f6f0cecc9$var$nextSyllable(glyphs, start)) {
-    let { category, syllableType } = glyphs[start].shaperInfo;
+  for (let start = 0, end = $7826f90f6f0cecc9$var$nextSyllable(glyphs2, 0); start < glyphs2.length; start = end, end = $7826f90f6f0cecc9$var$nextSyllable(glyphs2, start)) {
+    let { category, syllableType } = glyphs2[start].shaperInfo;
     if (syllableType === "symbol_cluster" || syllableType === "non_indic_cluster") continue;
     if (syllableType === "broken_cluster" && dottedCircle) {
       let g = new (0, $10e7b257e1a9a756$export$2e2bcd8739ae039)(font, dottedCircle, [
         9676
       ]);
-      g.shaperInfo = new $7826f90f6f0cecc9$var$IndicInfo(1 << $7826f90f6f0cecc9$var$indicCategory(g), $7826f90f6f0cecc9$var$indicPosition(g), glyphs[start].shaperInfo.syllableType, glyphs[start].shaperInfo.syllable);
+      g.shaperInfo = new $7826f90f6f0cecc9$var$IndicInfo(1 << $7826f90f6f0cecc9$var$indicCategory(g), $7826f90f6f0cecc9$var$indicPosition(g), glyphs2[start].shaperInfo.syllableType, glyphs2[start].shaperInfo.syllable);
       let i = start;
-      while (i < end && glyphs[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).Repha) i++;
-      glyphs.splice(i++, 0, g);
+      while (i < end && glyphs2[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).Repha) i++;
+      glyphs2.splice(i++, 0, g);
       end++;
     }
     let base = end;
     let limit = start;
     let hasReph = false;
-    if (indicConfig.rephPos !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Ra_To_Become_Reph && features.rphf && start + 3 <= end && (indicConfig.rephMode === "Implicit" && !$7826f90f6f0cecc9$var$isJoiner(glyphs[start + 2]) || indicConfig.rephMode === "Explicit" && glyphs[start + 2].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).ZWJ)) {
+    if (indicConfig.rephPos !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Ra_To_Become_Reph && features.rphf && start + 3 <= end && (indicConfig.rephMode === "Implicit" && !$7826f90f6f0cecc9$var$isJoiner(glyphs2[start + 2]) || indicConfig.rephMode === "Explicit" && glyphs2[start + 2].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).ZWJ)) {
       let g = [
-        glyphs[start].copy(),
-        glyphs[start + 1].copy(),
-        glyphs[start + 2].copy()
+        glyphs2[start].copy(),
+        glyphs2[start + 1].copy(),
+        glyphs2[start + 2].copy()
       ];
       if ($7826f90f6f0cecc9$var$wouldSubstitute(g.slice(0, 2), "rphf") || indicConfig.rephMode === "Explicit" && $7826f90f6f0cecc9$var$wouldSubstitute(g, "rphf")) {
         limit += 2;
-        while (limit < end && $7826f90f6f0cecc9$var$isJoiner(glyphs[limit])) limit++;
+        while (limit < end && $7826f90f6f0cecc9$var$isJoiner(glyphs2[limit])) limit++;
         base = start;
         hasReph = true;
       }
-    } else if (indicConfig.rephMode === "Log_Repha" && glyphs[start].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).Repha) {
+    } else if (indicConfig.rephMode === "Log_Repha" && glyphs2[start].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).Repha) {
       limit++;
-      while (limit < end && $7826f90f6f0cecc9$var$isJoiner(glyphs[limit])) limit++;
+      while (limit < end && $7826f90f6f0cecc9$var$isJoiner(glyphs2[limit])) limit++;
       base = start;
       hasReph = true;
     }
@@ -207335,59 +209486,59 @@ function $7826f90f6f0cecc9$var$initialReordering(font, glyphs, plan) {
         let i = end;
         let seenBelow = false;
         do {
-          let info = glyphs[--i].shaperInfo;
-          if ($7826f90f6f0cecc9$var$isConsonant(glyphs[i])) {
+          let info = glyphs2[--i].shaperInfo;
+          if ($7826f90f6f0cecc9$var$isConsonant(glyphs2[i])) {
             if (info.position !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Below_C && (info.position !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Post_C || seenBelow)) {
               base = i;
               break;
             }
             if (info.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Below_C) seenBelow = true;
             base = i;
-          } else if (start < i && info.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).ZWJ && glyphs[i - 1].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H) break;
+          } else if (start < i && info.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).ZWJ && glyphs2[i - 1].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H) break;
         } while (i > limit);
         break;
       }
       case "First":
         base = start;
-        for (let i = base + 1; i < end; i++) if ($7826f90f6f0cecc9$var$isConsonant(glyphs[i])) glyphs[i].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Below_C;
+        for (let i = base + 1; i < end; i++) if ($7826f90f6f0cecc9$var$isConsonant(glyphs2[i])) glyphs2[i].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Below_C;
     }
     if (hasReph && base === start && limit - base <= 2) hasReph = false;
     for (let i = start; i < base; i++) {
-      let info = glyphs[i].shaperInfo;
+      let info = glyphs2[i].shaperInfo;
       info.position = Math.min((0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_C, info.position);
     }
-    if (base < end) glyphs[base].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C;
-    for (let i = base + 1; i < end; i++) if (glyphs[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M) {
-      for (let j = i + 1; j < end; j++) if ($7826f90f6f0cecc9$var$isConsonant(glyphs[j])) {
-        glyphs[j].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Final_C;
+    if (base < end) glyphs2[base].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C;
+    for (let i = base + 1; i < end; i++) if (glyphs2[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M) {
+      for (let j = i + 1; j < end; j++) if ($7826f90f6f0cecc9$var$isConsonant(glyphs2[j])) {
+        glyphs2[j].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Final_C;
         break;
       }
       break;
     }
-    if (hasReph) glyphs[start].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Ra_To_Become_Reph;
+    if (hasReph) glyphs2[start].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Ra_To_Become_Reph;
     if (plan.isOldSpec) {
       let disallowDoubleHalants = plan.unicodeScript !== "Malayalam";
-      for (let i = base + 1; i < end; i++) if (glyphs[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H) {
+      for (let i = base + 1; i < end; i++) if (glyphs2[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H) {
         let j;
         for (j = end - 1; j > i; j--) {
-          if ($7826f90f6f0cecc9$var$isConsonant(glyphs[j]) || disallowDoubleHalants && glyphs[j].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H) break;
+          if ($7826f90f6f0cecc9$var$isConsonant(glyphs2[j]) || disallowDoubleHalants && glyphs2[j].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H) break;
         }
-        if (glyphs[j].shaperInfo.category !== (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H && j > i) {
-          let t = glyphs[i];
-          glyphs.splice(i, 0, ...glyphs.splice(i + 1, j - i));
-          glyphs[j] = t;
+        if (glyphs2[j].shaperInfo.category !== (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H && j > i) {
+          let t = glyphs2[i];
+          glyphs2.splice(i, 0, ...glyphs2.splice(i + 1, j - i));
+          glyphs2[j] = t;
         }
         break;
       }
     }
     let lastPos = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Start;
     for (let i = start; i < end; i++) {
-      let info = glyphs[i].shaperInfo;
+      let info = glyphs2[i].shaperInfo;
       if (info.category & ((0, $90a9d3398ee54fe5$export$bbcd928767338e0d) | (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).N | (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).RS | (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).CM | (0, $90a9d3398ee54fe5$export$ca9599b2a300afc) & info.category)) {
         info.position = lastPos;
         if (info.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H && info.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M) {
-          for (let j = i; j > start; j--) if (glyphs[j - 1].shaperInfo.position !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M) {
-            info.position = glyphs[j - 1].shaperInfo.position;
+          for (let j = i; j > start; j--) if (glyphs2[j - 1].shaperInfo.position !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M) {
+            info.position = glyphs2[j - 1].shaperInfo.position;
             break;
           }
         }
@@ -207395,185 +209546,185 @@ function $7826f90f6f0cecc9$var$initialReordering(font, glyphs, plan) {
     }
     let last = base;
     for (let i = base + 1; i < end; i++) {
-      if ($7826f90f6f0cecc9$var$isConsonant(glyphs[i])) {
-        for (let j = last + 1; j < i; j++) if (glyphs[j].shaperInfo.position < (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).SMVD) glyphs[j].shaperInfo.position = glyphs[i].shaperInfo.position;
+      if ($7826f90f6f0cecc9$var$isConsonant(glyphs2[i])) {
+        for (let j = last + 1; j < i; j++) if (glyphs2[j].shaperInfo.position < (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).SMVD) glyphs2[j].shaperInfo.position = glyphs2[i].shaperInfo.position;
         last = i;
-      } else if (glyphs[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M) last = i;
+      } else if (glyphs2[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M) last = i;
     }
-    let arr = glyphs.slice(start, end);
+    let arr = glyphs2.slice(start, end);
     arr.sort((a, b) => a.shaperInfo.position - b.shaperInfo.position);
-    glyphs.splice(start, arr.length, ...arr);
-    for (let i = start; i < end; i++) if (glyphs[i].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C) {
+    glyphs2.splice(start, arr.length, ...arr);
+    for (let i = start; i < end; i++) if (glyphs2[i].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C) {
       base = i;
       break;
     }
-    for (let i = start; i < end && glyphs[i].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Ra_To_Become_Reph; i++) glyphs[i].features.rphf = true;
+    for (let i = start; i < end && glyphs2[i].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Ra_To_Become_Reph; i++) glyphs2[i].features.rphf = true;
     let blwf = !plan.isOldSpec && indicConfig.blwfMode === "Pre_And_Post";
     for (let i = start; i < base; i++) {
-      glyphs[i].features.half = true;
-      if (blwf) glyphs[i].features.blwf = true;
+      glyphs2[i].features.half = true;
+      if (blwf) glyphs2[i].features.blwf = true;
     }
     for (let i = base + 1; i < end; i++) {
-      glyphs[i].features.abvf = true;
-      glyphs[i].features.pstf = true;
-      glyphs[i].features.blwf = true;
+      glyphs2[i].features.abvf = true;
+      glyphs2[i].features.pstf = true;
+      glyphs2[i].features.blwf = true;
     }
     if (plan.isOldSpec && plan.unicodeScript === "Devanagari") {
-      for (let i = start; i + 1 < base; i++) if (glyphs[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).Ra && glyphs[i + 1].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H && (i + 1 === base || glyphs[i + 2].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).ZWJ)) {
-        glyphs[i].features.blwf = true;
-        glyphs[i + 1].features.blwf = true;
+      for (let i = start; i + 1 < base; i++) if (glyphs2[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).Ra && glyphs2[i + 1].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).H && (i + 1 === base || glyphs2[i + 2].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).ZWJ)) {
+        glyphs2[i].features.blwf = true;
+        glyphs2[i + 1].features.blwf = true;
       }
     }
     let prefLen = 2;
     if (features.pref && base + prefLen < end)
       for (let i = base + 1; i + prefLen - 1 < end; i++) {
         let g = [
-          glyphs[i].copy(),
-          glyphs[i + 1].copy()
+          glyphs2[i].copy(),
+          glyphs2[i + 1].copy()
         ];
         if ($7826f90f6f0cecc9$var$wouldSubstitute(g, "pref")) {
-          for (let j = 0; j < prefLen; j++) glyphs[i++].features.pref = true;
-          if (features.cfar) for (; i < end; i++) glyphs[i].features.cfar = true;
+          for (let j = 0; j < prefLen; j++) glyphs2[i++].features.pref = true;
+          if (features.cfar) for (; i < end; i++) glyphs2[i].features.cfar = true;
           break;
         }
       }
-    for (let i = start + 1; i < end; i++) if ($7826f90f6f0cecc9$var$isJoiner(glyphs[i])) {
-      let nonJoiner = glyphs[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).ZWNJ;
+    for (let i = start + 1; i < end; i++) if ($7826f90f6f0cecc9$var$isJoiner(glyphs2[i])) {
+      let nonJoiner = glyphs2[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).ZWNJ;
       let j = i;
       do {
         j--;
-        if (nonJoiner) delete glyphs[j].features.half;
-      } while (j > start && !$7826f90f6f0cecc9$var$isConsonant(glyphs[j]));
+        if (nonJoiner) delete glyphs2[j].features.half;
+      } while (j > start && !$7826f90f6f0cecc9$var$isConsonant(glyphs2[j]));
     }
   }
 }
-function $7826f90f6f0cecc9$var$finalReordering(font, glyphs, plan) {
+function $7826f90f6f0cecc9$var$finalReordering(font, glyphs2, plan) {
   let indicConfig = plan.indicConfig;
   let features = font._layoutEngine.engine.GSUBProcessor.features;
-  for (let start = 0, end = $7826f90f6f0cecc9$var$nextSyllable(glyphs, 0); start < glyphs.length; start = end, end = $7826f90f6f0cecc9$var$nextSyllable(glyphs, start)) {
+  for (let start = 0, end = $7826f90f6f0cecc9$var$nextSyllable(glyphs2, 0); start < glyphs2.length; start = end, end = $7826f90f6f0cecc9$var$nextSyllable(glyphs2, start)) {
     let tryPref = !!features.pref;
     let base = start;
-    for (; base < end; base++) if (glyphs[base].shaperInfo.position >= (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C) {
+    for (; base < end; base++) if (glyphs2[base].shaperInfo.position >= (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C) {
       if (tryPref && base + 1 < end) {
-        for (let i = base + 1; i < end; i++) if (glyphs[i].features.pref) {
-          if (!(glyphs[i].substituted && glyphs[i].isLigated && !glyphs[i].isMultiplied)) {
+        for (let i = base + 1; i < end; i++) if (glyphs2[i].features.pref) {
+          if (!(glyphs2[i].substituted && glyphs2[i].isLigated && !glyphs2[i].isMultiplied)) {
             base = i;
-            while (base < end && $7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs[base])) base++;
-            glyphs[base].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).BASE_C;
+            while (base < end && $7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs2[base])) base++;
+            glyphs2[base].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).BASE_C;
             tryPref = false;
           }
           break;
         }
       }
       if (plan.unicodeScript === "Malayalam") for (let i = base + 1; i < end; i++) {
-        while (i < end && $7826f90f6f0cecc9$var$isJoiner(glyphs[i])) i++;
-        if (i === end || !$7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs[i])) break;
+        while (i < end && $7826f90f6f0cecc9$var$isJoiner(glyphs2[i])) i++;
+        if (i === end || !$7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs2[i])) break;
         i++;
-        while (i < end && $7826f90f6f0cecc9$var$isJoiner(glyphs[i])) i++;
-        if (i < end && $7826f90f6f0cecc9$var$isConsonant(glyphs[i]) && glyphs[i].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Below_C) {
+        while (i < end && $7826f90f6f0cecc9$var$isJoiner(glyphs2[i])) i++;
+        if (i < end && $7826f90f6f0cecc9$var$isConsonant(glyphs2[i]) && glyphs2[i].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Below_C) {
           base = i;
-          glyphs[base].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C;
+          glyphs2[base].shaperInfo.position = (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C;
         }
       }
-      if (start < base && glyphs[base].shaperInfo.position > (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C) base--;
+      if (start < base && glyphs2[base].shaperInfo.position > (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Base_C) base--;
       break;
     }
-    if (base === end && start < base && glyphs[base - 1].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).ZWJ) base--;
-    if (base < end) while (start < base && glyphs[base].shaperInfo.category & ((0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).N | (0, $90a9d3398ee54fe5$export$ca9599b2a300afc))) base--;
+    if (base === end && start < base && glyphs2[base - 1].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).ZWJ) base--;
+    if (base < end) while (start < base && glyphs2[base].shaperInfo.category & ((0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).N | (0, $90a9d3398ee54fe5$export$ca9599b2a300afc))) base--;
     if (start + 1 < end && start < base) {
       let newPos = base === end ? base - 2 : base - 1;
       if (plan.unicodeScript !== "Malayalam" && plan.unicodeScript !== "Tamil") {
-        while (newPos > start && !(glyphs[newPos].shaperInfo.category & ((0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M | (0, $90a9d3398ee54fe5$export$ca9599b2a300afc)))) newPos--;
-        if ($7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs[newPos]) && glyphs[newPos].shaperInfo.position !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M) {
-          if (newPos + 1 < end && $7826f90f6f0cecc9$var$isJoiner(glyphs[newPos + 1])) newPos++;
+        while (newPos > start && !(glyphs2[newPos].shaperInfo.category & ((0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M | (0, $90a9d3398ee54fe5$export$ca9599b2a300afc)))) newPos--;
+        if ($7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs2[newPos]) && glyphs2[newPos].shaperInfo.position !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M) {
+          if (newPos + 1 < end && $7826f90f6f0cecc9$var$isJoiner(glyphs2[newPos + 1])) newPos++;
         } else newPos = start;
       }
-      if (start < newPos && glyphs[newPos].shaperInfo.position !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M) {
-        for (let i = newPos; i > start; i--) if (glyphs[i - 1].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M) {
+      if (start < newPos && glyphs2[newPos].shaperInfo.position !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M) {
+        for (let i = newPos; i > start; i--) if (glyphs2[i - 1].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M) {
           let oldPos = i - 1;
           if (oldPos < base && base <= newPos) base--;
-          let tmp = glyphs[oldPos];
-          glyphs.splice(oldPos, 0, ...glyphs.splice(oldPos + 1, newPos - oldPos));
-          glyphs[newPos] = tmp;
+          let tmp = glyphs2[oldPos];
+          glyphs2.splice(oldPos, 0, ...glyphs2.splice(oldPos + 1, newPos - oldPos));
+          glyphs2[newPos] = tmp;
           newPos--;
         }
       }
     }
-    if (start + 1 < end && glyphs[start].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Ra_To_Become_Reph && glyphs[start].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).Repha !== (glyphs[start].isLigated && !glyphs[start].isMultiplied)) {
+    if (start + 1 < end && glyphs2[start].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Ra_To_Become_Reph && glyphs2[start].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).Repha !== (glyphs2[start].isLigated && !glyphs2[start].isMultiplied)) {
       let newRephPos;
       let rephPos = indicConfig.rephPos;
       let found = false;
       if (rephPos !== (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).After_Post) {
         newRephPos = start + 1;
-        while (newRephPos < base && !$7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs[newRephPos])) newRephPos++;
-        if (newRephPos < base && $7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs[newRephPos])) {
-          if (newRephPos + 1 < base && $7826f90f6f0cecc9$var$isJoiner(glyphs[newRephPos + 1])) newRephPos++;
+        while (newRephPos < base && !$7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs2[newRephPos])) newRephPos++;
+        if (newRephPos < base && $7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs2[newRephPos])) {
+          if (newRephPos + 1 < base && $7826f90f6f0cecc9$var$isJoiner(glyphs2[newRephPos + 1])) newRephPos++;
           found = true;
         }
         if (!found && rephPos === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).After_Main) {
           newRephPos = base;
-          while (newRephPos + 1 < end && glyphs[newRephPos + 1].shaperInfo.position <= (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).After_Main) newRephPos++;
+          while (newRephPos + 1 < end && glyphs2[newRephPos + 1].shaperInfo.position <= (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).After_Main) newRephPos++;
           found = newRephPos < end;
         }
         if (!found && rephPos === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).After_Sub) {
           newRephPos = base;
-          while (newRephPos + 1 < end && !(glyphs[newRephPos + 1].shaperInfo.position & ((0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Post_C | (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).After_Post | (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).SMVD))) newRephPos++;
+          while (newRephPos + 1 < end && !(glyphs2[newRephPos + 1].shaperInfo.position & ((0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Post_C | (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).After_Post | (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).SMVD))) newRephPos++;
           found = newRephPos < end;
         }
       }
       if (!found) {
         newRephPos = start + 1;
-        while (newRephPos < base && !$7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs[newRephPos])) newRephPos++;
-        if (newRephPos < base && $7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs[newRephPos])) {
-          if (newRephPos + 1 < base && $7826f90f6f0cecc9$var$isJoiner(glyphs[newRephPos + 1])) newRephPos++;
+        while (newRephPos < base && !$7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs2[newRephPos])) newRephPos++;
+        if (newRephPos < base && $7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs2[newRephPos])) {
+          if (newRephPos + 1 < base && $7826f90f6f0cecc9$var$isJoiner(glyphs2[newRephPos + 1])) newRephPos++;
           found = true;
         }
       }
       if (!found) {
         newRephPos = end - 1;
-        while (newRephPos > start && glyphs[newRephPos].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).SMVD) newRephPos--;
-        if ($7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs[newRephPos])) {
-          for (let i = base + 1; i < newRephPos; i++) if (glyphs[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M) newRephPos--;
+        while (newRephPos > start && glyphs2[newRephPos].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).SMVD) newRephPos--;
+        if ($7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs2[newRephPos])) {
+          for (let i = base + 1; i < newRephPos; i++) if (glyphs2[i].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M) newRephPos--;
         }
       }
-      let reph = glyphs[start];
-      glyphs.splice(start, 0, ...glyphs.splice(start + 1, newRephPos - start));
-      glyphs[newRephPos] = reph;
+      let reph = glyphs2[start];
+      glyphs2.splice(start, 0, ...glyphs2.splice(start + 1, newRephPos - start));
+      glyphs2[newRephPos] = reph;
       if (start < base && base <= newRephPos) base--;
     }
     if (tryPref && base + 1 < end) {
-      for (let i = base + 1; i < end; i++) if (glyphs[i].features.pref) {
-        if (glyphs[i].isLigated && !glyphs[i].isMultiplied) {
+      for (let i = base + 1; i < end; i++) if (glyphs2[i].features.pref) {
+        if (glyphs2[i].isLigated && !glyphs2[i].isMultiplied) {
           let newPos = base;
           if (plan.unicodeScript !== "Malayalam" && plan.unicodeScript !== "Tamil") {
-            while (newPos > start && !(glyphs[newPos - 1].shaperInfo.category & ((0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M | (0, $90a9d3398ee54fe5$export$ca9599b2a300afc)))) newPos--;
-            if (newPos > start && glyphs[newPos - 1].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M) {
+            while (newPos > start && !(glyphs2[newPos - 1].shaperInfo.category & ((0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M | (0, $90a9d3398ee54fe5$export$ca9599b2a300afc)))) newPos--;
+            if (newPos > start && glyphs2[newPos - 1].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M) {
               let oldPos2 = i;
-              for (let j = base + 1; j < oldPos2; j++) if (glyphs[j].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M) {
+              for (let j = base + 1; j < oldPos2; j++) if (glyphs2[j].shaperInfo.category === (0, $90a9d3398ee54fe5$export$a513ea61a7bee91c).M) {
                 newPos--;
                 break;
               }
             }
           }
-          if (newPos > start && $7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs[newPos - 1])) {
-            if (newPos < end && $7826f90f6f0cecc9$var$isJoiner(glyphs[newPos])) newPos++;
+          if (newPos > start && $7826f90f6f0cecc9$var$isHalantOrCoeng(glyphs2[newPos - 1])) {
+            if (newPos < end && $7826f90f6f0cecc9$var$isJoiner(glyphs2[newPos])) newPos++;
           }
           let oldPos = i;
-          let tmp = glyphs[oldPos];
-          glyphs.splice(newPos + 1, 0, ...glyphs.splice(newPos, oldPos - newPos));
-          glyphs[newPos] = tmp;
+          let tmp = glyphs2[oldPos];
+          glyphs2.splice(newPos + 1, 0, ...glyphs2.splice(newPos, oldPos - newPos));
+          glyphs2[newPos] = tmp;
           if (newPos <= base && base < oldPos) base++;
         }
         break;
       }
     }
-    if (glyphs[start].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M && (!start || !/Cf|Mn/.test((0, $747425b437e121da$export$410364bbb673ddbc)(glyphs[start - 1].codePoints[0])))) glyphs[start].features.init = true;
+    if (glyphs2[start].shaperInfo.position === (0, $90a9d3398ee54fe5$export$1a1f61c9c4dd9df0).Pre_M && (!start || !/Cf|Mn/.test((0, $747425b437e121da$export$410364bbb673ddbc)(glyphs2[start - 1].codePoints[0])))) glyphs2[start].features.init = true;
   }
 }
-function $7826f90f6f0cecc9$var$nextSyllable(glyphs, start) {
-  if (start >= glyphs.length) return start;
-  let syllable = glyphs[start].shaperInfo.syllable;
-  while (++start < glyphs.length && glyphs[start].shaperInfo.syllable === syllable) ;
+function $7826f90f6f0cecc9$var$nextSyllable(glyphs2, start) {
+  if (start >= glyphs2.length) return start;
+  let syllable = glyphs2[start].shaperInfo.syllable;
+  while (++start < glyphs2.length && glyphs2[start].shaperInfo.syllable === syllable) ;
   return start;
 }
 var { categories: $7ab494fe977143c6$var$categories, decompositions: $7ab494fe977143c6$var$decompositions } = (0, /* @__PURE__ */ $parcel$interopDefault2($aa333a9607471296$exports));
@@ -207618,17 +209769,17 @@ var $7ab494fe977143c6$export$2e2bcd8739ae039 = class extends (0, $649970d87335b3
       "blwm"
     ]);
   }
-  static assignFeatures(plan, glyphs) {
-    for (let i = glyphs.length - 1; i >= 0; i--) {
-      let codepoint = glyphs[i].codePoints[0];
+  static assignFeatures(plan, glyphs2) {
+    for (let i = glyphs2.length - 1; i >= 0; i--) {
+      let codepoint = glyphs2[i].codePoints[0];
       if ($7ab494fe977143c6$var$decompositions[codepoint]) {
         let decomposed = $7ab494fe977143c6$var$decompositions[codepoint].map((c) => {
           let g = plan.font.glyphForCodePoint(c);
           return new (0, $10e7b257e1a9a756$export$2e2bcd8739ae039)(plan.font, g.id, [
             c
-          ], glyphs[i].features);
+          ], glyphs2[i].features);
         });
-        glyphs.splice(i, 1, ...decomposed);
+        glyphs2.splice(i, 1, ...decomposed);
       }
     }
   }
@@ -207644,31 +209795,31 @@ var $7ab494fe977143c6$var$USEInfo = class {
     this.syllable = syllable;
   }
 };
-function $7ab494fe977143c6$var$setupSyllables(font, glyphs) {
+function $7ab494fe977143c6$var$setupSyllables(font, glyphs2) {
   let syllable = 0;
-  for (let [start, end, tags] of $7ab494fe977143c6$var$stateMachine.match(glyphs.map($7ab494fe977143c6$var$useCategory))) {
+  for (let [start, end, tags] of $7ab494fe977143c6$var$stateMachine.match(glyphs2.map($7ab494fe977143c6$var$useCategory))) {
     ++syllable;
-    for (let i = start; i <= end; i++) glyphs[i].shaperInfo = new $7ab494fe977143c6$var$USEInfo($7ab494fe977143c6$var$categories[$7ab494fe977143c6$var$useCategory(glyphs[i])], tags[0], syllable);
-    let limit = glyphs[start].shaperInfo.category === "R" ? 1 : Math.min(3, end - start);
-    for (let i = start; i < start + limit; i++) glyphs[i].features.rphf = true;
+    for (let i = start; i <= end; i++) glyphs2[i].shaperInfo = new $7ab494fe977143c6$var$USEInfo($7ab494fe977143c6$var$categories[$7ab494fe977143c6$var$useCategory(glyphs2[i])], tags[0], syllable);
+    let limit = glyphs2[start].shaperInfo.category === "R" ? 1 : Math.min(3, end - start);
+    for (let i = start; i < start + limit; i++) glyphs2[i].features.rphf = true;
   }
 }
-function $7ab494fe977143c6$var$clearSubstitutionFlags(font, glyphs) {
-  for (let glyph of glyphs) glyph.substituted = false;
+function $7ab494fe977143c6$var$clearSubstitutionFlags(font, glyphs2) {
+  for (let glyph of glyphs2) glyph.substituted = false;
 }
-function $7ab494fe977143c6$var$recordRphf(font, glyphs) {
-  for (let glyph of glyphs) if (glyph.substituted && glyph.features.rphf)
+function $7ab494fe977143c6$var$recordRphf(font, glyphs2) {
+  for (let glyph of glyphs2) if (glyph.substituted && glyph.features.rphf)
     glyph.shaperInfo.category = "R";
 }
-function $7ab494fe977143c6$var$recordPref(font, glyphs) {
-  for (let glyph of glyphs) if (glyph.substituted)
+function $7ab494fe977143c6$var$recordPref(font, glyphs2) {
+  for (let glyph of glyphs2) if (glyph.substituted)
     glyph.shaperInfo.category = "VPre";
 }
-function $7ab494fe977143c6$var$reorder(font, glyphs) {
+function $7ab494fe977143c6$var$reorder(font, glyphs2) {
   let dottedCircle = font.glyphForCodePoint(9676).id;
-  for (let start = 0, end = $7ab494fe977143c6$var$nextSyllable(glyphs, 0); start < glyphs.length; start = end, end = $7ab494fe977143c6$var$nextSyllable(glyphs, start)) {
+  for (let start = 0, end = $7ab494fe977143c6$var$nextSyllable(glyphs2, 0); start < glyphs2.length; start = end, end = $7ab494fe977143c6$var$nextSyllable(glyphs2, start)) {
     let i, j;
-    let info = glyphs[start].shaperInfo;
+    let info = glyphs2[start].shaperInfo;
     let type2 = info.syllableType;
     if (type2 !== "virama_terminated_cluster" && type2 !== "standard_cluster" && type2 !== "broken_cluster") continue;
     if (type2 === "broken_cluster" && dottedCircle) {
@@ -207676,31 +209827,31 @@ function $7ab494fe977143c6$var$reorder(font, glyphs) {
         9676
       ]);
       g.shaperInfo = info;
-      for (i = start; i < end && glyphs[i].shaperInfo.category === "R"; i++) ;
-      glyphs.splice(++i, 0, g);
+      for (i = start; i < end && glyphs2[i].shaperInfo.category === "R"; i++) ;
+      glyphs2.splice(++i, 0, g);
       end++;
     }
     if (info.category === "R" && end - start > 1)
       for (i = start + 1; i < end; i++) {
-        info = glyphs[i].shaperInfo;
-        if ($7ab494fe977143c6$var$isBase(info) || $7ab494fe977143c6$var$isHalant(glyphs[i])) {
-          if ($7ab494fe977143c6$var$isHalant(glyphs[i])) i--;
-          glyphs.splice(start, 0, ...glyphs.splice(start + 1, i - start), glyphs[i]);
+        info = glyphs2[i].shaperInfo;
+        if ($7ab494fe977143c6$var$isBase(info) || $7ab494fe977143c6$var$isHalant(glyphs2[i])) {
+          if ($7ab494fe977143c6$var$isHalant(glyphs2[i])) i--;
+          glyphs2.splice(start, 0, ...glyphs2.splice(start + 1, i - start), glyphs2[i]);
           break;
         }
       }
     for (i = start, j = end; i < end; i++) {
-      info = glyphs[i].shaperInfo;
-      if ($7ab494fe977143c6$var$isBase(info) || $7ab494fe977143c6$var$isHalant(glyphs[i]))
-        j = $7ab494fe977143c6$var$isHalant(glyphs[i]) ? i + 1 : i;
-      else if ((info.category === "VPre" || info.category === "VMPre") && j < i) glyphs.splice(j, 1, glyphs[i], ...glyphs.splice(j, i - j));
+      info = glyphs2[i].shaperInfo;
+      if ($7ab494fe977143c6$var$isBase(info) || $7ab494fe977143c6$var$isHalant(glyphs2[i]))
+        j = $7ab494fe977143c6$var$isHalant(glyphs2[i]) ? i + 1 : i;
+      else if ((info.category === "VPre" || info.category === "VMPre") && j < i) glyphs2.splice(j, 1, glyphs2[i], ...glyphs2.splice(j, i - j));
     }
   }
 }
-function $7ab494fe977143c6$var$nextSyllable(glyphs, start) {
-  if (start >= glyphs.length) return start;
-  let syllable = glyphs[start].shaperInfo.syllable;
-  while (++start < glyphs.length && glyphs[start].shaperInfo.syllable === syllable) ;
+function $7ab494fe977143c6$var$nextSyllable(glyphs2, start) {
+  if (start >= glyphs2.length) return start;
+  let syllable = glyphs2[start].shaperInfo.syllable;
+  while (++start < glyphs2.length && glyphs2[start].shaperInfo.syllable === syllable) ;
   return start;
 }
 function $7ab494fe977143c6$var$isHalant(glyph) {
@@ -208078,8 +210229,8 @@ var $c96c93587d49c14d$export$2e2bcd8739ae039 = class extends (0, $a83b9c36aaa94f
       y
     };
   }
-  applyFeatures(userFeatures, glyphs, advances) {
-    super.applyFeatures(userFeatures, glyphs, advances);
+  applyFeatures(userFeatures, glyphs2, advances) {
+    super.applyFeatures(userFeatures, glyphs2, advances);
     for (var i = 0; i < this.glyphs.length; i++) this.fixCursiveAttachment(i);
     this.fixMarkAttachment();
   }
@@ -208184,17 +210335,17 @@ var $4c0a7fa5df7a9ab1$export$2e2bcd8739ae039 = class {
     }
     if (typeof string === "string") {
       if (script == null) script = $130d1a642ebcd2b7$export$e5cb25e204fb8450(string);
-      var glyphs = this.font.glyphsForString(string);
+      var glyphs2 = this.font.glyphsForString(string);
     } else {
       if (script == null) {
         let codePoints = [];
         for (let glyph of string) codePoints.push(...glyph.codePoints);
         script = $130d1a642ebcd2b7$export$16fab0757cfc223d(codePoints);
       }
-      var glyphs = string;
+      var glyphs2 = string;
     }
-    let glyphRun = new (0, $be07b3e97a42687a$export$2e2bcd8739ae039)(glyphs, features, script, language, direction);
-    if (glyphs.length === 0) {
+    let glyphRun = new (0, $be07b3e97a42687a$export$2e2bcd8739ae039)(glyphs2, features, script, language, direction);
+    if (glyphs2.length === 0) {
       glyphRun.positions = [];
       return glyphRun;
     }
@@ -208222,10 +210373,10 @@ var $4c0a7fa5df7a9ab1$export$2e2bcd8739ae039 = class {
       glyphRun.features.kern = true;
     }
   }
-  hideDefaultIgnorables(glyphs, positions) {
+  hideDefaultIgnorables(glyphs2, positions) {
     let space = this.font.glyphForCodePoint(32);
-    for (let i = 0; i < glyphs.length; i++) if (this.isDefaultIgnorable(glyphs[i].codePoints[0])) {
-      glyphs[i] = space;
+    for (let i = 0; i < glyphs2.length; i++) if (this.isDefaultIgnorable(glyphs2[i].codePoints[0])) {
+      glyphs2[i] = space;
       positions[i].xAdvance = 0;
       positions[i].yAdvance = 0;
     }
@@ -210562,7 +212713,7 @@ var $4c1709dee528ea76$export$2e2bcd8739ae039 = class _$4c1709dee528ea76$export$2
   * @return {Glyph[]}
   */
   glyphsForString(string) {
-    let glyphs = [];
+    let glyphs2 = [];
     let len = string.length;
     let idx = 0;
     let last = -1;
@@ -210582,16 +212733,16 @@ var $4c1709dee528ea76$export$2e2bcd8739ae039 = class _$4c1709dee528ea76$export$2
         nextState = 65024 <= code2 && code2 <= 65039 || 917760 <= code2 && code2 <= 917999 ? 1 : 0;
       } else idx++;
       if (state === 0 && nextState === 1)
-        glyphs.push(this.getGlyph(this._cmapProcessor.lookup(last, code2), [
+        glyphs2.push(this.getGlyph(this._cmapProcessor.lookup(last, code2), [
           last,
           code2
         ]));
       else if (state === 0 && nextState === 0)
-        glyphs.push(this.glyphForCodePoint(last));
+        glyphs2.push(this.glyphForCodePoint(last));
       last = code2;
       state = nextState;
     }
-    return glyphs;
+    return glyphs2;
   }
   get _layoutEngine() {
     return new (0, $4c0a7fa5df7a9ab1$export$2e2bcd8739ae039)(this);
@@ -211004,7 +213155,7 @@ var $21ee218f84ac7f32$export$2e2bcd8739ae039 = class extends (0, $4c1709dee528ea
     this._decompress();
     this.stream.pos = this.directory.tables.glyf.offset;
     let table3 = $21ee218f84ac7f32$var$GlyfTable.decode(this.stream);
-    let glyphs = [];
+    let glyphs2 = [];
     for (let index2 = 0; index2 < table3.numGlyphs; index2++) {
       let glyph = {};
       let nContours = table3.nContours.readInt16BE();
@@ -211026,9 +213177,9 @@ var $21ee218f84ac7f32$export$2e2bcd8739ae039 = class extends (0, $4c1709dee528ea
         }, glyph, table3.composites);
         if (haveInstructions) var instructionSize = $21ee218f84ac7f32$var$read255UInt16(table3.glyphs);
       }
-      glyphs.push(glyph);
+      glyphs2.push(glyph);
     }
-    this._transformedGlyphs = glyphs;
+    this._transformedGlyphs = glyphs2;
   }
   constructor(...args) {
     super(...args);
@@ -211077,7 +213228,7 @@ function $21ee218f84ac7f32$var$read255UInt16(stream) {
 function $21ee218f84ac7f32$var$withSign(flag, baseval) {
   return flag & 1 ? baseval : -baseval;
 }
-function $21ee218f84ac7f32$var$decodeTriplet(flags, glyphs, nPoints) {
+function $21ee218f84ac7f32$var$decodeTriplet(flags, glyphs2, nPoints) {
   let y;
   let x = y = 0;
   let res = [];
@@ -211088,27 +213239,27 @@ function $21ee218f84ac7f32$var$decodeTriplet(flags, glyphs, nPoints) {
     flag &= 127;
     if (flag < 10) {
       dx = 0;
-      dy = $21ee218f84ac7f32$var$withSign(flag, ((flag & 14) << 7) + glyphs.readUInt8());
+      dy = $21ee218f84ac7f32$var$withSign(flag, ((flag & 14) << 7) + glyphs2.readUInt8());
     } else if (flag < 20) {
-      dx = $21ee218f84ac7f32$var$withSign(flag, ((flag - 10 & 14) << 7) + glyphs.readUInt8());
+      dx = $21ee218f84ac7f32$var$withSign(flag, ((flag - 10 & 14) << 7) + glyphs2.readUInt8());
       dy = 0;
     } else if (flag < 84) {
       var b0 = flag - 20;
-      var b1 = glyphs.readUInt8();
+      var b1 = glyphs2.readUInt8();
       dx = $21ee218f84ac7f32$var$withSign(flag, 1 + (b0 & 48) + (b1 >> 4));
       dy = $21ee218f84ac7f32$var$withSign(flag >> 1, 1 + ((b0 & 12) << 2) + (b1 & 15));
     } else if (flag < 120) {
       var b0 = flag - 84;
-      dx = $21ee218f84ac7f32$var$withSign(flag, 1 + (b0 / 12 << 8) + glyphs.readUInt8());
-      dy = $21ee218f84ac7f32$var$withSign(flag >> 1, 1 + (b0 % 12 >> 2 << 8) + glyphs.readUInt8());
+      dx = $21ee218f84ac7f32$var$withSign(flag, 1 + (b0 / 12 << 8) + glyphs2.readUInt8());
+      dy = $21ee218f84ac7f32$var$withSign(flag >> 1, 1 + (b0 % 12 >> 2 << 8) + glyphs2.readUInt8());
     } else if (flag < 124) {
-      var b1 = glyphs.readUInt8();
-      let b2 = glyphs.readUInt8();
+      var b1 = glyphs2.readUInt8();
+      let b2 = glyphs2.readUInt8();
       dx = $21ee218f84ac7f32$var$withSign(flag, (b1 << 4) + (b2 >> 4));
-      dy = $21ee218f84ac7f32$var$withSign(flag >> 1, ((b2 & 15) << 8) + glyphs.readUInt8());
+      dy = $21ee218f84ac7f32$var$withSign(flag >> 1, ((b2 & 15) << 8) + glyphs2.readUInt8());
     } else {
-      dx = $21ee218f84ac7f32$var$withSign(flag, glyphs.readUInt16BE());
-      dy = $21ee218f84ac7f32$var$withSign(flag >> 1, glyphs.readUInt16BE());
+      dx = $21ee218f84ac7f32$var$withSign(flag, glyphs2.readUInt16BE());
+      dy = $21ee218f84ac7f32$var$withSign(flag >> 1, glyphs2.readUInt16BE());
     }
     x += dx;
     y += dy;
@@ -211845,7 +213996,7 @@ ${yamlText.trimEnd()}
 }
 
 // src/render.mjs
-import { readFileSync as readFileSync3 } from "node:fs";
+import { readFileSync as readFileSync4 } from "node:fs";
 import { basename, dirname as dirname2, join as join4, relative, resolve } from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 
@@ -218441,6 +220592,47 @@ function inline3(md) {
   };
 }
 
+// src/plugins/media.mjs
+var VIDEO = /\.(mp4|webm|ogv|ogg|mov|m4v)$/i;
+var isVideo = (src) => VIDEO.test(src.replace(/[?#].*$/, ""));
+function standalone(state) {
+  const tokens = state.tokens;
+  for (let i = 1; i < tokens.length - 1; i++) {
+    if (tokens[i].type !== "inline" || tokens[i - 1].type !== "paragraph_open") continue;
+    const media2 = tokens[i].children.filter((t) => !(t.type === "text" && !t.content.trim()));
+    if (media2.length !== 1 || media2[0].type !== "image") continue;
+    tokens[i].children = media2;
+    media2[0].meta = { ...media2[0].meta, block: true };
+    tokens[i - 1].hidden = tokens[i + 1].hidden = true;
+  }
+}
+function media(md) {
+  md.core.ruler.after("inline", "hs-media", standalone);
+  const image2 = md.renderer.rules.image;
+  md.renderer.rules.image = (tokens, idx, opts, env, self) => {
+    const token = tokens[idx];
+    const src = token.attrGet("src") ?? "";
+    const size = env.media?.get(token);
+    const dims = size ? ` width="${size.width}" height="${size.height}"` : "";
+    let inner;
+    if (isVideo(src)) {
+      const alt = self.renderInlineAsText(token.children ?? [], opts, env);
+      inner = `<video src="${escapeHtml2(src)}"${dims} controls preload="metadata"${alt ? ` aria-label="${escapeHtml2(alt)}"` : ""}></video>`;
+    } else {
+      if (size) {
+        token.attrSet("width", String(size.width));
+        token.attrSet("height", String(size.height));
+      }
+      inner = image2(tokens, idx, opts, env, self);
+    }
+    if (!token.meta?.block) return inner;
+    const title = token.attrGet("title");
+    const caption = title ? `<figcaption><span>${escapeHtml2(title)}</span></figcaption>` : "";
+    return `<figure><span class="hs-media">${inner}</span>${caption}</figure>
+`;
+  };
+}
+
 // src/plugins/records.mjs
 var SLOTS = /* @__PURE__ */ new Set(["title", "id", "sub", "links", "desc", "note"]);
 function parseRecords(text2) {
@@ -218518,20 +220710,216 @@ function recordsPlugin(md) {
 function createMd() {
   const md = new lib_default({ html: false, linkify: false, typographer: false });
   md.use(markdownItCjkFriendlyPlugin).use(deflist_plugin).use(footnote_plugin).use(ins_plugin);
-  md.use(containers).use(blocks).use(recordsPlugin).use(inline3).use(fence3).use(headings);
+  md.use(containers).use(blocks).use(recordsPlugin).use(inline3).use(media).use(fence3).use(headings);
   md.hsFences = { heatmap: (token, attrs, env) => renderHeatmap(md, token, attrs, env) };
   return md;
 }
 
+// src/media-size.mjs
+var import_jpeg_js = __toESM(require_jpeg_js(), 1);
+import { spawnSync } from "node:child_process";
+import { readFileSync as readFileSync3 } from "node:fs";
+import { inflateSync } from "node:zlib";
+var BODY_FONT_PX = 16;
+var MAX_PIXELS = 4e6;
+var SCALE_RANGE = [0.15, 1.5];
+var INK_THRESHOLD = 40;
+var LINE_INK_RATIO = 0.9;
+var LINE_TRIM = 0.1;
+var lum = (r, g, b) => (r * 299 + g * 587 + b * 114) / 1e3;
+function paeth(a, b, c) {
+  const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+  return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+}
+function decodePng(buf) {
+  if (buf.length < 8 || buf.readUInt32BE(0) !== 2303741511) return null;
+  let pos = 8, w = 0, h = 0, depth = 0, type2 = 0, interlace = 0, palette = null;
+  const idat = [];
+  while (pos + 8 <= buf.length) {
+    const len = buf.readUInt32BE(pos), name = buf.toString("latin1", pos + 4, pos + 8);
+    const data = buf.subarray(pos + 8, pos + 8 + len);
+    if (name === "IHDR") [w, h, depth, type2, interlace] = [data.readUInt32BE(0), data.readUInt32BE(4), data[8], data[9], data[12]];
+    else if (name === "PLTE") palette = data;
+    else if (name === "IDAT") idat.push(data);
+    else if (name === "IEND") break;
+    pos += 12 + len;
+  }
+  const channels = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 }[type2];
+  if (!w || !h || !channels || interlace || type2 === 3 && !palette) return null;
+  const raw = inflateSync(Buffer.concat(idat));
+  const bpp = Math.max(1, channels * depth >> 3);
+  const stride = Math.ceil(w * channels * depth / 8);
+  const gray = new Uint8Array(w * h);
+  let prev = new Uint8Array(stride), row = new Uint8Array(stride);
+  const sample = (x, c) => {
+    const i = x * channels + c;
+    if (depth === 8) return row[i];
+    if (depth === 16) return row[i * 2];
+    const v = row[i * depth >> 3] >> 8 - depth - (i * depth & 7) & (1 << depth) - 1;
+    return type2 === 3 ? v : Math.round(v * 255 / ((1 << depth) - 1));
+  };
+  for (let y = 0; y < h; y++) {
+    const off = y * (stride + 1), filter3 = raw[off];
+    for (let i = 0; i < stride; i++) {
+      const a = i >= bpp ? row[i - bpp] : 0, b = prev[i], c = i >= bpp ? prev[i - bpp] : 0, v = raw[off + 1 + i];
+      row[i] = filter3 === 1 ? v + a : filter3 === 2 ? v + b : filter3 === 3 ? v + (a + b >> 1) : filter3 === 4 ? v + paeth(a, b, c) : v;
+    }
+    for (let x = 0; x < w; x++) {
+      let g, alpha = 255;
+      if (type2 === 3) {
+        const p = sample(x, 0) * 3;
+        g = lum(palette[p], palette[p + 1], palette[p + 2]);
+      } else if (channels >= 3) {
+        g = lum(sample(x, 0), sample(x, 1), sample(x, 2));
+        if (channels === 4) alpha = sample(x, 3);
+      } else {
+        g = sample(x, 0);
+        if (channels === 2) alpha = sample(x, 1);
+      }
+      gray[y * w + x] = (g * alpha + 255 * (255 - alpha)) / 255;
+    }
+    [prev, row] = [row, prev];
+  }
+  return { w, h, gray };
+}
+function decodeJpeg(buf) {
+  if (buf.length < 3 || buf[0] !== 255 || buf[1] !== 216) return null;
+  const { width: w, height: h, data } = import_jpeg_js.default.decode(buf, { useTArray: true, formatAsRGBA: true, maxMemoryUsageInMB: 2048 });
+  const gray = new Uint8Array(w * h);
+  for (let i = 0; i < gray.length; i++) gray[i] = lum(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
+  return { w, h, gray };
+}
+function shrink({ w, h, gray }) {
+  const f = Math.max(1, Math.ceil(Math.sqrt(w * h / MAX_PIXELS)));
+  if (f === 1) return { w, h, gray, f };
+  const sw = Math.floor(w / f), sh = Math.floor(h / f), out = new Uint8Array(sw * sh);
+  for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
+    let sum = 0;
+    for (let dy = 0; dy < f; dy++) for (let dx = 0; dx < f; dx++) sum += gray[(y * f + dy) * w + x * f + dx];
+    out[y * sw + x] = sum / (f * f);
+  }
+  return { w: sw, h: sh, gray: out, f };
+}
+function inkMasks({ w, h, gray }, r = 15) {
+  const sat = new Float64Array((w + 1) * (h + 1));
+  for (let y = 0; y < h; y++) {
+    let line = 0;
+    for (let x = 0; x < w; x++) {
+      line += gray[y * w + x];
+      sat[(y + 1) * (w + 1) + x + 1] = sat[y * (w + 1) + x + 1] + line;
+    }
+  }
+  const dark = new Uint8Array(w * h), light = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) {
+    const y0 = Math.max(0, y - r), y1 = Math.min(h, y + r + 1);
+    for (let x = 0; x < w; x++) {
+      const x0 = Math.max(0, x - r), x1 = Math.min(w, x + r + 1);
+      const sum = sat[y1 * (w + 1) + x1] - sat[y0 * (w + 1) + x1] - sat[y1 * (w + 1) + x0] + sat[y0 * (w + 1) + x0];
+      const d = gray[y * w + x] - sum / ((x1 - x0) * (y1 - y0));
+      if (d < -INK_THRESHOLD) dark[y * w + x] = 1;
+      else if (d > INK_THRESHOLD) light[y * w + x] = 1;
+    }
+  }
+  return [dark, light];
+}
+function glyphs(mask, w, h) {
+  const seen = new Uint8Array(w * h), stack = new Int32Array(w * h), out = [];
+  for (let start = 0; start < mask.length; start++) {
+    if (!mask[start] || seen[start]) continue;
+    let top = 0, count = 0, x0 = w, x1 = 0, y0 = h, y1 = 0;
+    stack[top++] = start;
+    seen[start] = 1;
+    while (top) {
+      const p = stack[--top], px = p % w, py = (p - px) / w;
+      count++;
+      if (px < x0) x0 = px;
+      if (px > x1) x1 = px;
+      if (py < y0) y0 = py;
+      if (py > y1) y1 = py;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const nx = px + dx, ny = py + dy, q = ny * w + nx;
+        if (nx >= 0 && nx < w && ny >= 0 && ny < h && mask[q] && !seen[q]) {
+          seen[q] = 1;
+          stack[top++] = q;
+        }
+      }
+    }
+    const gw = x1 - x0 + 1, gh = y1 - y0 + 1, density = count / (gw * gh);
+    if (gh >= 4 && gh <= 160 && gw <= gh * 4 && gw >= gh * 0.1 && density > 0.15 && density < 0.9) out.push({ x0, x1, y0, y1, h: gh });
+  }
+  return out;
+}
+var quantile = (sorted, p) => sorted[Math.floor(p * (sorted.length - 1))];
+function lineHeight(gs) {
+  gs.sort((a, b) => a.x0 - b.x0);
+  const parent = gs.map((_, i) => i);
+  const find3 = (i) => {
+    while (parent[i] !== i) i = parent[i] = parent[parent[i]];
+    return i;
+  };
+  for (let i = 0; i < gs.length; i++) {
+    const a = gs[i];
+    for (let j = i + 1; j < gs.length && gs[j].x0 <= a.x1 + a.h * 0.8; j++) {
+      const b = gs[j], overlap = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) + 1;
+      if (overlap >= 0.5 * Math.min(a.h, b.h) && Math.max(a.h, b.h) <= 3 * Math.min(a.h, b.h)) parent[find3(j)] = find3(i);
+    }
+  }
+  const lines = /* @__PURE__ */ new Map();
+  gs.forEach((g, i) => {
+    const r = find3(i);
+    if (!lines.has(r)) lines.set(r, { tops: [], bottoms: [] });
+    lines.get(r).tops.push(g.y0);
+    lines.get(r).bottoms.push(g.y1);
+  });
+  const samples = [...lines.values()].filter((l) => l.tops.length >= 3).map((l) => {
+    const tops = l.tops.sort((a, b) => a - b), bottoms = l.bottoms.sort((a, b) => a - b);
+    return { h: quantile(bottoms, 1 - LINE_TRIM) - quantile(tops, LINE_TRIM) + 1, n: tops.length };
+  }).sort((a, b) => a.h - b.h);
+  const total = samples.reduce((s, l) => s + l.n, 0);
+  if (total < 12) return null;
+  let acc = 0;
+  for (const l of samples) if ((acc += l.n) >= total / 2) return { h: l.h, n: total };
+  return null;
+}
+function estimateFontPx(image2) {
+  const small = shrink(image2);
+  const [best] = inkMasks(small).map((mask) => lineHeight(glyphs(mask, small.w, small.h))).filter(Boolean).sort((a, b) => b.n - a.n);
+  return best ? best.h * small.f / LINE_INK_RATIO : null;
+}
+function videoFrame(path) {
+  for (const at of ["2", "0"]) {
+    const r = spawnSync(
+      "ffmpeg",
+      ["-v", "error", "-ss", at, "-i", path, "-frames:v", "1", "-f", "image2pipe", "-c:v", "png", "-"],
+      { maxBuffer: 256 * 1024 * 1024, timeout: 2e4 }
+    );
+    if (!r.error && r.status === 0 && r.stdout.length) return r.stdout;
+  }
+  return null;
+}
+function measureMedia(path, isVideo2) {
+  let image2;
+  try {
+    const buf = isVideo2 ? videoFrame(path) : readFileSync3(path);
+    image2 = buf && (decodePng(buf) ?? decodeJpeg(buf));
+  } catch {
+    return null;
+  }
+  if (!image2) return null;
+  const fontPx = estimateFontPx(image2);
+  const scale = fontPx ? Math.min(SCALE_RANGE[1], Math.max(SCALE_RANGE[0], BODY_FONT_PX / fontPx)) : 1;
+  return { width: Math.round(image2.w * scale), height: Math.round(image2.h * scale), fontPx };
+}
+
 // src/render.mjs
-var VERSION = "2.2.0";
+var VERSION = "2.3.0";
 var GENERATOR = `Markdown-2-HTML/${VERSION}`;
 var SCRIPTS = join4(dirname2(fileURLToPath2(import.meta.url)), "..");
 var ASSETS = join4(SCRIPTS, "..", "assets");
 var templateParts = null;
 function template() {
   if (templateParts) return templateParts;
-  const html = readFileSync3(join4(ASSETS, "template.html"), "utf8");
+  const html = readFileSync4(join4(ASSETS, "template.html"), "utf8");
   const pick = (re, name) => {
     const m = html.match(re);
     if (!m) throw new Error(`template.html \u91CC\u627E\u4E0D\u5230${name}`);
@@ -218542,7 +220930,7 @@ function template() {
     style: pick(/<style id="hs-style">[\s\S]*?<\/style>/, ' <style id="hs-style">'),
     top: pick(/<a class="hs-top"[\s\S]*?<\/a>/, "\u56DE\u5230\u9876\u90E8\u6309\u94AE"),
     script: pick(/<script id="hs-script">[\s\S]*?<\/script>/, ' <script id="hs-script">'),
-    presets: readFileSync3(join4(ASSETS, "presets.css"), "utf8").trim()
+    presets: readFileSync4(join4(ASSETS, "presets.css"), "utf8").trim()
   };
   return templateParts;
 }
@@ -218566,6 +220954,24 @@ async function preparePlantUml(tokens, env) {
       return includes.get(name);
     });
     env.plantuml.set(t, await renderPlantUml(source));
+  }
+}
+function prepareMedia(tokens, env, mdPath) {
+  env.media = /* @__PURE__ */ new Map();
+  const cache = /* @__PURE__ */ new Map();
+  for (const t of tokens) {
+    for (const img of t.type === "inline" ? t.children : []) {
+      const src = img.type === "image" && img.meta?.block ? img.attrGet("src") : "";
+      if (!src || /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(src)) continue;
+      let path;
+      try {
+        path = resolve(dirname2(resolve(mdPath)), decodeURIComponent(src.replace(/[?#].*$/, "")));
+      } catch {
+        continue;
+      }
+      if (!cache.has(path)) cache.set(path, measureMedia(path, isVideo(src)));
+      if (cache.get(path)) env.media.set(img, cache.get(path));
+    }
   }
 }
 function page({ title, toc, body, css, source }) {
@@ -218603,10 +221009,11 @@ async function renderDocument(text2, { mdPath = "doc.md", outPath = null } = {})
   const env = { front };
   const tokens = md.parse(source, env);
   await preparePlantUml(tokens, env);
+  prepareMedia(tokens, env, mdPath);
   const body = md.renderer.render(tokens, md.options, env);
   const h1 = tokens.find((t) => t.type === "heading_open" && t.tag === "h1");
   const title = front.title ?? tokens[tokens.indexOf(h1) + 1]?.content ?? basename(mdPath, ".md");
-  const css = front.css ? readFileSync3(resolve(dirname2(resolve(mdPath)), front.css), "utf8") : "";
+  const css = front.css ? readFileSync4(resolve(dirname2(resolve(mdPath)), front.css), "utf8") : "";
   const sourceRef = outPath ? relative(dirname2(resolve(outPath)), resolve(mdPath)).replace(/\\/g, "/") : basename(mdPath);
   return page({ title, toc: front.toc ?? [2, 3], body, css, source: sourceRef });
 }
@@ -218689,7 +221096,7 @@ async function main([command, ...args]) {
     const [input] = args;
     if (!input) throw new Error(USAGE);
     const outPath = out ?? resolve2(input).replace(/\.md$/i, "") + ".html";
-    const html = await renderDocument(readFileSync4(input, "utf8"), { mdPath: input, outPath });
+    const html = await renderDocument(readFileSync5(input, "utf8"), { mdPath: input, outPath });
     if (command === "check") return console.log(`\u53EF\u4EE5\u5BFC\u51FA\uFF1A${input}`);
     writeFileSync2(outPath, html);
     return console.log(`\u5DF2\u5BFC\u51FA ${outPath}\uFF08${kb(html)}\uFF0C${GENERATOR}\uFF09`);
@@ -218698,7 +221105,7 @@ async function main([command, ...args]) {
     const pumlDir = option(args, "--puml-dir");
     const [input, output] = args;
     if (!input || !output) throw new Error(USAGE);
-    const { md, warnings: warnings2 } = convert(readFileSync4(input, "utf8"), { pumlDir });
+    const { md, warnings: warnings2 } = convert(readFileSync5(input, "utf8"), { pumlDir });
     writeFileSync2(output, md);
     console.log(`\u5DF2\u8F6C\u6362 ${output}\uFF08${kb(md)}\uFF09`);
     for (const w of warnings2) console.log(`  \u8B66\u544A\uFF1A${w}`);
@@ -218707,7 +221114,7 @@ async function main([command, ...args]) {
   if (command === "verify") {
     const [orig, regen] = args;
     if (!orig || !regen) throw new Error(USAGE);
-    const { ok, report } = compare(readFileSync4(orig, "utf8"), readFileSync4(regen, "utf8"));
+    const { ok, report } = compare(readFileSync5(orig, "utf8"), readFileSync5(regen, "utf8"));
     console.log(`${ok ? "\u4E00\u81F4" : "\u6709\u5DEE\u5F02"}\uFF1A${orig} \u2194 ${regen}
 ${report.join("\n")}`);
     process.exitCode = ok ? 0 : 1;
@@ -218719,7 +221126,7 @@ ${report.join("\n")}`);
     if (!input || input === "-" && !out) throw new Error(USAGE);
     const outPath = out ?? resolve2(input).replace(/\.(puml|plantuml|pu|txt)$/i, "") + ".svg";
     if (!/\.svg$/i.test(outPath)) throw new Error(`\u53EA\u652F\u6301\u8F93\u51FA SVG\uFF1A${outPath}`);
-    const svg = await renderPlantUml(readFileSync4(input === "-" ? 0 : input, "utf8"));
+    const svg = await renderPlantUml(readFileSync5(input === "-" ? 0 : input, "utf8"));
     writeFileSync2(outPath, svg);
     return console.log(`\u5DF2\u6E32\u67D3 ${outPath}\uFF08${kb(svg)}\uFF09`);
   }

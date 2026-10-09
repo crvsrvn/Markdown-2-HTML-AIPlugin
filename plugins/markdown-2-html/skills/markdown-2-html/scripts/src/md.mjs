@@ -10,13 +10,14 @@ import fence from './plugins/fence.mjs';
 import headings from './plugins/headings.mjs';
 import { renderHeatmap } from './plugins/heatmap.mjs';
 import inline from './plugins/inline.mjs';
+import media from './plugins/media.mjs';
 import records from './plugins/records.mjs';
 
 export function createMd() {
   // html: false：正文里的 < > 都是普通字符，不会混入原始 HTML
   const md = new MarkdownIt({ html: false, linkify: false, typographer: false });
   md.use(cjkFriendly).use(deflist).use(footnote).use(mark);
-  md.use(containers).use(blocks).use(records).use(inline).use(fence).use(headings);
+  md.use(containers).use(blocks).use(records).use(inline).use(media).use(fence).use(headings);
   md.hsFences = { heatmap: (token, attrs, env) => renderHeatmap(md, token, attrs, env) };
   return md;
 }

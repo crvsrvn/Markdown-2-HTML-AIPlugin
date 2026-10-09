@@ -28,6 +28,15 @@
 .hs-doc .hs-card .hs-card-t { margin: 0 0 6px; font-weight: 700; color: var(--hs-text); }
 .hs-doc .hs-card p:not(.hs-card-t) { margin: 0; font-size: 14.5px; color: var(--hs-muted); }
 
+/* 图片与视频：按导出时测得的默认宽高显示，不超出所在内容栏，高度随宽度等比变化 */
+.hs-doc :not(.hs-zoom) > :is(img, video) { max-width: 100%; height: auto; }
+/* 独占一段的图片、视频：.hs-media 只用来定位手柄，没有边框和底色；手柄在悬停或拖动时显示，压在右下角外侧以免遮住播放器控件 */
+.hs-media { position: relative; display: block; width: fit-content; max-width: 100%; }
+.hs-media > :is(img, video) { display: block; }
+.hs-media > .hs-resize { right: -7px; bottom: -7px; opacity: 0; transition: opacity .15s; }
+.hs-media:is(:hover, .is-resizing) > .hs-resize { opacity: 1; }
+@media (hover: none) { .hs-media > .hs-resize { opacity: 1; } }
+
 /* 链接胶囊（data-kind 取语义色） */
 :where(.hs-pill) { --c: var(--hs-accent); }
 .hs-doc a.hs-pill { display: inline-block; margin: 0 6px 6px 0; padding: 0 10px; font-size: 13px; line-height: 1.8; white-space: nowrap; color: var(--c); text-decoration: none; background: color-mix(in srgb, var(--c) 9%, transparent); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent); border-radius: 999px; }
