@@ -213996,8 +213996,8 @@ ${yamlText.trimEnd()}
 }
 
 // src/render.mjs
-import { readFileSync as readFileSync4 } from "node:fs";
-import { basename, dirname as dirname2, join as join4, relative, resolve } from "node:path";
+import { existsSync as existsSync2, readFileSync as readFileSync4 } from "node:fs";
+import { basename, dirname as dirname2, extname, join as join4, relative, resolve } from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 
 // node_modules/markdown-it/lib/common/utils.mjs
@@ -220612,13 +220612,21 @@ function media(md) {
   md.renderer.rules.image = (tokens, idx, opts, env, self) => {
     const token = tokens[idx];
     const src = token.attrGet("src") ?? "";
-    const size = env.media?.get(token);
+    const media2 = env.media?.get(token);
+    const size = media2?.size;
     const dims = size ? ` width="${size.width}" height="${size.height}"` : "";
     let inner;
     if (isVideo(src)) {
       const alt = self.renderInlineAsText(token.children ?? [], opts, env);
-      inner = `<video src="${escapeHtml2(src)}"${dims} controls preload="metadata"${alt ? ` aria-label="${escapeHtml2(alt)}"` : ""}></video>`;
+      const label = alt ? ` aria-label="${escapeHtml2(alt)}"` : "";
+      if (media2) {
+        const id = `hs-media-${env.mediaCount = (env.mediaCount ?? 0) + 1}`;
+        inner = `<video data-hs-src="${id}"${dims} controls preload="metadata"${label}></video><script type="application/octet-stream" id="${id}" data-type="${media2.mime}">${media2.data}</script>`;
+      } else {
+        inner = `<video src="${escapeHtml2(src)}"${dims} controls preload="metadata"${label}></video>`;
+      }
     } else {
+      if (media2) token.attrSet("src", `data:${media2.mime};base64,${media2.data}`);
       if (size) {
         token.attrSet("width", String(size.width));
         token.attrSet("height", String(size.height));
@@ -220956,21 +220964,43 @@ async function preparePlantUml(tokens, env) {
     env.plantuml.set(t, await renderPlantUml(source));
   }
 }
+var MIME2 = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  gif: "image/gif",
+  webp: "image/webp",
+  avif: "image/avif",
+  svg: "image/svg+xml",
+  bmp: "image/bmp",
+  mp4: "video/mp4",
+  m4v: "video/mp4",
+  webm: "video/webm",
+  ogv: "video/ogg",
+  ogg: "video/ogg",
+  mov: "video/quicktime"
+};
+var MAX_EMBED_CHARS = 4e8;
 function prepareMedia(tokens, env, mdPath) {
   env.media = /* @__PURE__ */ new Map();
   const cache = /* @__PURE__ */ new Map();
+  let total = 0;
   for (const t of tokens) {
     for (const img of t.type === "inline" ? t.children : []) {
-      const src = img.type === "image" && img.meta?.block ? img.attrGet("src") : "";
+      const src = img.type === "image" ? img.attrGet("src") : "";
       if (!src || /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(src)) continue;
-      let path;
-      try {
-        path = resolve(dirname2(resolve(mdPath)), decodeURIComponent(src.replace(/[?#].*$/, "")));
-      } catch {
-        continue;
+      const path = resolve(dirname2(resolve(mdPath)), decodeURIComponent(src.replace(/[?#].*$/, "")));
+      if (!existsSync2(path)) throw new Error(`\u56FE\u7247\u6216\u89C6\u9891\u6587\u4EF6\u4E0D\u5B58\u5728\uFF1A${src}\uFF08${path}\uFF09`);
+      const mime = MIME2[extname(path).slice(1).toLowerCase()];
+      if (!mime) throw new Error(`\u4E0D\u652F\u6301\u5D4C\u5165\u7684\u5A92\u4F53\u7C7B\u578B\uFF1A${src}`);
+      if (!cache.has(path)) {
+        const data = readFileSync4(path).toString("base64");
+        if ((total += data.length) > MAX_EMBED_CHARS) throw new Error(`\u5D4C\u5165\u7684\u56FE\u7247\u4E0E\u89C6\u9891\u8D85\u8FC7 ${MAX_EMBED_CHARS / 1e6 * 0.75} MB\uFF0C\u5355\u4E2A HTML \u653E\u4E0D\u4E0B\uFF1A${src}`);
+        cache.set(path, { mime, data });
       }
-      if (!cache.has(path)) cache.set(path, measureMedia(path, isVideo(src)));
-      if (cache.get(path)) env.media.set(img, cache.get(path));
+      const media2 = cache.get(path);
+      if (img.meta?.block && !("size" in media2)) media2.size = measureMedia(path, isVideo(src));
+      env.media.set(img, media2);
     }
   }
 }

@@ -1,6 +1,6 @@
 // Markdown → 单文件 HTML：样式与脚本取自 assets/template.html，PlantUML 预渲染为内联 SVG，无外部依赖
-import { readFileSync } from 'node:fs';
-import { basename, dirname, join, relative, resolve } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { createMd } from './md.mjs';
@@ -61,18 +61,35 @@ async function preparePlantUml(tokens, env) {
   }
 }
 
-// 测量独占一段的本地图片与视频，得到让其中文字接近正文字号的默认宽高；外链与读不了的文件按原始尺寸显示
+const MIME = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif',
+  svg: 'image/svg+xml', bmp: 'image/bmp', mp4: 'video/mp4', m4v: 'video/mp4', webm: 'video/webm', ogv: 'video/ogg',
+  ogg: 'video/ogg', mov: 'video/quicktime',
+};
+// 嵌入数据总量上限（base64 字符数）：整页 HTML 是一个字符串，Node 单个字符串最长约 5.3 亿字符
+const MAX_EMBED_CHARS = 400e6;
+
+// 本地图片与视频嵌入 HTML（base64），独占一段的再测出让其中文字接近正文字号的默认宽高；外链不嵌入
 function prepareMedia(tokens, env, mdPath) {
   env.media = new Map();
   const cache = new Map();
+  let total = 0;
   for (const t of tokens) {
     for (const img of t.type === 'inline' ? t.children : []) {
-      const src = img.type === 'image' && img.meta?.block ? img.attrGet('src') : '';
+      const src = img.type === 'image' ? img.attrGet('src') : '';
       if (!src || /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(src)) continue;
-      let path;
-      try { path = resolve(dirname(resolve(mdPath)), decodeURIComponent(src.replace(/[?#].*$/, ''))); } catch { continue; }
-      if (!cache.has(path)) cache.set(path, measureMedia(path, isVideo(src)));
-      if (cache.get(path)) env.media.set(img, cache.get(path));
+      const path = resolve(dirname(resolve(mdPath)), decodeURIComponent(src.replace(/[?#].*$/, '')));
+      if (!existsSync(path)) throw new Error(`图片或视频文件不存在：${src}（${path}）`);
+      const mime = MIME[extname(path).slice(1).toLowerCase()];
+      if (!mime) throw new Error(`不支持嵌入的媒体类型：${src}`);
+      if (!cache.has(path)) {
+        const data = readFileSync(path).toString('base64');
+        if ((total += data.length) > MAX_EMBED_CHARS) throw new Error(`嵌入的图片与视频超过 ${MAX_EMBED_CHARS / 1e6 * 0.75} MB，单个 HTML 放不下：${src}`);
+        cache.set(path, { mime, data });
+      }
+      const media = cache.get(path);
+      if (img.meta?.block && !('size' in media)) media.size = measureMedia(path, isVideo(src));
+      env.media.set(img, media);
     }
   }
 }

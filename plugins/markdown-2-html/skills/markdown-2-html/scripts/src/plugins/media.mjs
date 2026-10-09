@@ -1,5 +1,5 @@
 // 图片与视频：![说明](a.png "图注") 独占一段时导出为 figure，默认宽高取导出时的测量结果（文字接近正文字号），
-// 页面上可拖右下角等比缩放；地址是视频文件时导出为页内播放器
+// 页面上可拖右下角等比缩放；地址是视频文件时导出为页内播放器；本地文件嵌入 HTML，外链保持链接
 import { escapeHtml } from '../util.mjs';
 
 const VIDEO = /\.(mp4|webm|ogv|ogg|mov|m4v)$/i;
@@ -26,13 +26,23 @@ export default function media(md) {
   md.renderer.rules.image = (tokens, idx, opts, env, self) => {
     const token = tokens[idx];
     const src = token.attrGet('src') ?? '';
-    const size = env.media?.get(token);
+    const media = env.media?.get(token);
+    const size = media?.size;
     const dims = size ? ` width="${size.width}" height="${size.height}"` : '';
     let inner;
     if (isVideo(src)) {
       const alt = self.renderInlineAsText(token.children ?? [], opts, env);
-      inner = `<video src="${escapeHtml(src)}"${dims} controls preload="metadata"${alt ? ` aria-label="${escapeHtml(alt)}"` : ''}></video>`;
+      const label = alt ? ` aria-label="${escapeHtml(alt)}"` : '';
+      if (media) {
+        // 嵌入的视频：数据放在不执行的 script 里，页面脚本在视频接近视口时转成 Blob 地址
+        const id = `hs-media-${(env.mediaCount = (env.mediaCount ?? 0) + 1)}`;
+        inner = `<video data-hs-src="${id}"${dims} controls preload="metadata"${label}></video>`
+          + `<script type="application/octet-stream" id="${id}" data-type="${media.mime}">${media.data}</script>`;
+      } else {
+        inner = `<video src="${escapeHtml(src)}"${dims} controls preload="metadata"${label}></video>`;
+      }
     } else {
+      if (media) token.attrSet('src', `data:${media.mime};base64,${media.data}`);
       if (size) { token.attrSet('width', String(size.width)); token.attrSet('height', String(size.height)); }
       inner = image(tokens, idx, opts, env, self);
     }

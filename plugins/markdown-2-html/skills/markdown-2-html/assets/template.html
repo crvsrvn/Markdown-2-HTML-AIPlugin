@@ -933,6 +933,20 @@ body { margin: 0; background: var(--hs-bg); color: var(--hs-text); font: 16px/1.
   doc.querySelectorAll('figure > img, figure > svg, figure > canvas').forEach(wrap);
   doc.querySelectorAll('.hs-zoom').forEach(initZoom);
   doc.querySelectorAll('.hs-media').forEach(bindMediaResize);
+
+  // 嵌入的视频：base64 放在不执行的 script 里，视频接近视口时才转成 Blob 地址，打开页面时不一次性解出全部视频
+  const loadVideo = async video => {
+    const data = document.getElementById(video.dataset.hsSrc);
+    if (!data) return;
+    const blob = await (await fetch(`data:${data.dataset.type};base64,${data.textContent}`)).blob();
+    video.src = URL.createObjectURL(blob);
+  };
+  const videoObserver = new IntersectionObserver(entries => entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    videoObserver.unobserve(e.target);
+    loadVideo(e.target);
+  }), { rootMargin: '100% 0px' });
+  doc.querySelectorAll('video[data-hs-src]').forEach(v => videoObserver.observe(v));
   // Mermaid 由宿主异步渲染，SVG 出现后再接管
   doc.querySelectorAll('.mermaid').forEach(m => {
     const adopt = () => {
